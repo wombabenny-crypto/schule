@@ -121,7 +121,7 @@
     </div>
 
     <button class="start-btn" onclick="startMic()">🎤 Mikrofon starten</button>
-    <button class="music-btn" onclick="toggleMusic()" id="musicBtn">🎵 Ruhige Musik starten</button>
+    <button class="music-btn" onclick="toggleYouTube()" id="ytBtn">🎬 Ruhige Musik starten</button>
 
     <div class="counter">
         🔴 Heute zu laut: <span id="redCounter">0</span> mal
@@ -282,7 +282,22 @@
         oscillator.stop(audioContext.currentTime + 1);
     }
 
-    
+    let ytPlaying = false;
+
+function toggleYouTube() {
+    const iframe = document.getElementById("ytMusic");
+    const btn = document.getElementById("ytBtn");
+
+    if (!ytPlaying) {
+        iframe.src = "https://www.youtube.com/embed/g_3cIWgZ5C8?autoplay=1&loop=1&playlist=g_3cIWgZ5C8";
+        btn.innerText = "⏸ YouTube stoppen";
+        ytPlaying = true;
+    } else {
+        iframe.src = "";
+        btn.innerText = "🎬 YouTube starten";
+        ytPlaying = false;
+    }
+}
 </script>
 
 </body>
