@@ -130,9 +130,15 @@
     <div class="tip">💡 Tipp: Haltet den Balken im grünen Bereich!</div>
 </div>
 
-<audio id="bgMusic" loop>
-    <source src="musik.mp3" type="audio/mpeg">
-</audio>
+
+<iframe 
+    id="ytMusic"
+    width="0" 
+    height="0" 
+    src="https://www.youtube.com/embed/g_3cIWgZ5C8?autoplay=0&loop=1&playlist=g_3cIWgZ5C8"
+    frameborder="0"
+    allow="autoplay">
+</iframe>
 
 <script>
     const smiley = document.getElementById("smiley");
@@ -276,18 +282,7 @@
         oscillator.stop(audioContext.currentTime + 1);
     }
 
-    function toggleMusic() {
-        const music = document.getElementById("bgMusic");
-        const btn = document.getElementById("musicBtn");
-
-        if (music.paused) {
-            music.play();
-            btn.innerText = "⏸ Musik stoppen";
-        } else {
-            music.pause();
-            btn.innerText = "🎵 Ruhige Musik starten";
-        }
-    }
+    
 </script>
 
 </body>
