@@ -77,3 +77,338 @@
 
     button {
       width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 18px;
+      margin-top: 15px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: 0.2s;
+      font-weight: bold;
+    }
+
+    .start-btn { background: #60a5fa; color: white; }
+    .music-btn { background: #c4b5fd; color: #312e81; }
+
+    .counter {
+      margin-top: 25px;
+      background: #f8fafc;
+      border-radius: 20px;
+      padding: 15px;
+      font-size: 1.2rem;
+      color: #475569;
+    }
+
+    .tip { margin-top: 20px; font-size: 0.95rem; color: #64748b; }
+
+    /* ✅ YouTube Player unsichtbar, aber "echte" Größe (stabiler als 0x0) */
+    #ytMusic {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 200px;
+      height: 200px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🌈 Klassenruhe</h1>
+    <div class="subtitle">Wir achten gemeinsam auf unsere Lautstärke</div>
+
+    <div id="smiley" class="smiley good">😊</div>
+    <div id="message" class="message">Super ruhig 🌿</div>
+
+    <div class="progress-container">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+
+    <div class="slider-box">
+      <label>Empfindlichkeit: <span id="thresholdText">55</span></label>
+      <input type="range" min="20" max="120" value="55" id="threshold">
+    </div>
+
+    <button class="start-btn" onclick="startMic()">🎤 Mikrofon starten</button>
+    <button class="music-btn" onclick="toggleYouTube()" id="ytBtn">🎬 YouTube starten</button>
+
+    <div class="counter">
+      🔴 Heute zu laut: <span id="redCounter">0</span> mal
+    </div>
+
+    <div class="tip">💡 Tipp: Haltet den Balken im grünen Bereich!</div>
+  </div>
+
+  <!-- ✅ Platzhalter: hier erstellt die API den YouTube-Player -->
+  <div id="ytMusic"></div>
+
+  <script>
+    /* -----------------------------
+       ✅ Elemente
+    ------------------------------ */
+    const smiley = document.getElementById("smiley");
+    const message = document.getElementById("message");
+    const progressBar = document.getElementById("progressBar");
+    const threshold = document.getElementById("threshold");
+    const thresholdText = document.getElementById("thresholdText");
+
+    let redCount = 0;
+    let wasBad = false;
+    let lastStatusChange = 0;
+    const holdTime = 2000;
+    let currentMood = "good";
+
+    threshold.oninput = () => {
+      thresholdText.innerText = threshold.value;
+    };
+
+    /* -----------------------------
+       ✅ YouTube: API laden + Player + Ducking
+    ------------------------------ */
+    // Video-ID
+    const YT_VIDEO_ID = "g_3cIWgZ5C8";
+
+    // Lautstärken (0..100) – gerne anpassen:
+    const VOL_GREEN  = 60; // normal (ruhig)
+    const VOL_ORANGE = 20; // etwas leiser (mittel)
+    const VOL_RED    = 5;  // sehr leise (laut)
+
+    // weiches Überblenden (Rampen)
+    const RAMP_STEP = 3;       // wie stark pro Schritt
+    const RAMP_MS   = 120;     // wie oft anpassen
+
+    let player = null;
+    let ytReady = false;
+    let ytPlaying = false;
+
+    let targetVol = VOL_GREEN;
+    let rampTimer = null;
+
+    // ✅ YouTube API async nachladen (verhindert "zu früh ready")
+    (function loadYT() {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    })();
+
+    // Wird von YouTube aufgerufen, wenn API bereit ist
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player("ytMusic", {
+        width: "200",
+        height: "200",
+        videoId: YT_VIDEO_ID,
+        playerVars: {
+          autoplay: 0,
+          loop: 1,
+          playlist: YT_VIDEO_ID,   // nötig für Loop
+          controls: 0,
+          fs: 0,
+          modestbranding: 1
+        },
+        events: {
+          onReady: (e) => {
+            ytReady = true;
+            e.target.setVolume(VOL_GREEN);
+            targetVol = VOL_GREEN;
+          }
+        }
+      });
+    }
+
+    function toggleYouTube() {
+      const btn = document.getElementById("ytBtn");
+      if (!ytReady || !player) return;
+
+      if (!ytPlaying) {
+        player.playVideo(); // Ton startet nach Klick (Browser-Regel)
+        ytPlaying = true;
+        btn.innerText = "⏸ Musik stoppen";
+
+        // direkt auf aktuellen Zielwert rampen
+        startVolumeRamp(targetVol);
+      } else {
+        player.stopVideo();
+        ytPlaying = false;
+        btn.innerText = "🎬 Ruhige Musik starten";
+
+        stopVolumeRamp();
+      }
+    }
+
+    function stopVolumeRamp() {
+      if (rampTimer) {
+        clearInterval(rampTimer);
+        rampTimer = null;
+      }
+    }
+
+    function startVolumeRamp(newTarget) {
+      targetVol = newTarget;
+
+      if (!ytPlaying || !ytReady || !player) return;
+
+      if (rampTimer) return; // läuft schon
+
+      rampTimer = setInterval(() => {
+        if (!ytPlaying || !ytReady || !player) {
+          stopVolumeRamp();
+          return;
+        }
+
+        // current volume (0..100)
+        let cur = 0;
+        try { cur = player.getVolume(); } catch (e) { cur = targetVol; }
+
+        if (cur === targetVol) {
+          stopVolumeRamp();
+          return;
+        }
+
+        const dir = (targetVol > cur) ? 1 : -1;
+        let next = cur + dir * RAMP_STEP;
+
+        // clamp
+        if (dir === 1 && next > targetVol) next = targetVol;
+        if (dir === -1 && next < targetVol) next = targetVol;
+
+        player.setVolume(next);
+      }, RAMP_MS);
+    }
+
+    // entscheidet abhängig vom Balken (0..100%), wie laut YouTube sein soll
+    function applyYouTubeDucking(percentage) {
+      if (!ytPlaying || !ytReady || !player) return;
+
+      let newTarget = VOL_GREEN;
+      if (percentage >= 80) newTarget = VOL_RED;
+      else if (percentage >= 40) newTarget = VOL_ORANGE;
+
+      if (newTarget !== targetVol) {
+        // Ramp neu starten (weich)
+        stopVolumeRamp();
+        startVolumeRamp(newTarget);
+      }
+    }
+
+    /* -----------------------------
+       ✅ Mikrofon / Balken / Smiley
+    ------------------------------ */
+    async function startMic() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const microphone = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        microphone.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        function update() {
+          analyser.getByteFrequencyData(dataArray);
+
+          let values = 0;
+          for (let i = 0; i < dataArray.length; i++) values += dataArray[i];
+          let average = Math.round(values / dataArray.length);
+
+          const limit = parseInt(threshold.value);
+          let percentage = Math.min((average / limit) * 100, 100);
+          progressBar.style.width = percentage + "%";
+
+          // ✅ FESTE FARBZONEN
+          if (percentage < 40) progressBar.style.backgroundColor = "#22c55e";
+          else if (percentage < 80) progressBar.style.backgroundColor = "#eab308";
+          else progressBar.style.backgroundColor = "#ef4444";
+
+          // ✅ YouTube automatisch leiser bei Lärm
+          applyYouTubeDucking(percentage);
+
+          updateMood(average);
+          requestAnimationFrame(update);
+        }
+
+        update();
+      } catch (err) {
+        alert("Mikrofon-Zugriff verweigert.");
+      }
+    }
+
+    function updateMood(volume) {
+      const limit = parseInt(threshold.value);
+      const now = Date.now();
+
+      let newMood = "good";
+      if (volume >= limit * 0.8) newMood = "bad";
+      else if (volume >= limit * 0.4) newMood = "medium";
+
+      const moodOrder = { "good": 1, "medium": 2, "bad": 3 };
+
+      if (moodOrder[newMood] > moodOrder[currentMood]) {
+        currentMood = newMood;
+        lastStatusChange = now;
+      } else if (moodOrder[newMood] < moodOrder[currentMood]) {
+        if (now - lastStatusChange >= holdTime) {
+          currentMood = newMood;
+          lastStatusChange = now;
+        }
+      }
+
+      smiley.className = "smiley";
+
+      if (currentMood === "good") {
+        smiley.innerText = "😊";
+        smiley.classList.add("good");
+        message.innerText = "Super ruhig 🌿";
+        wasBad = false;
+
+      } else if (currentMood === "medium") {
+        smiley.innerText = "😐";
+        smiley.classList.add("medium");
+        message.innerText = "Etwas leiser bitte 🌈";
+        wasBad = false;
+
+      } else if (currentMood === "bad") {
+        smiley.innerText = "😵";
+        smiley.classList.add("bad");
+        message.innerText = "Ups 😅 Wir schaffen das leiser";
+
+        playSoftBell();
+
+        if (!wasBad) {
+          redCount++;
+          document.getElementById("redCounter").innerText = redCount;
+          wasBad = true;
+        }
+      }
+    }
+
+    /* -----------------------------
+       ✅ Glocke
+    ------------------------------ */
+    let lastBell = 0;
+    function playSoftBell() {
+      const now = Date.now();
+      if (now - lastBell < 3000) return;
+      lastBell = now;
+
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(659.25, audioContext.currentTime + 0.25);
+
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 1);
+    }
+  </script>
+</body>
+</html>
