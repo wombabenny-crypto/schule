@@ -6,11 +6,7 @@
     <title>Klassenruhe 🌈</title>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: Arial, sans-serif;
@@ -32,20 +28,12 @@
             text-align: center;
         }
 
-        h1 {
-            font-size: 2.2rem;
-            color: #4b5563;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #6b7280;
-            margin-bottom: 25px;
-        }
+        h1 { font-size: 2.2rem; color: #4b5563; margin-bottom: 10px; }
+        .subtitle { color: #6b7280; margin-bottom: 25px; }
 
         .smiley {
-            width: 220px;
-            height: 220px;
+            width: 200px;
+            height: 200px;
             margin: 0 auto 20px;
             border-radius: 50%;
             display: flex;
@@ -53,7 +41,6 @@
             justify-content: center;
             font-size: 7rem;
             transition: 0.3s;
-            background: #fde68a;
         }
 
         .good { background: #bbf7d0; box-shadow: 0 0 30px rgba(34,197,94,0.4); }
@@ -67,16 +54,27 @@
             min-height: 50px;
         }
 
-        .volume {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #334155;
-            margin-bottom: 20px;
+        /* Der neue Lautstärkebalken */
+        .progress-container {
+            width: 100%;
+            height: 30px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            border: 3px solid #f1f5f9;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%; /* Wird per JS gesteuert */
+            background: #22c55e;
+            transition: width 0.1s ease-out, background-color 0.3s;
         }
 
         .slider-box { margin: 25px 0; }
         label { display: block; margin-bottom: 10px; font-size: 1.1rem; color: #475569; }
-        input[type=range] { width: 100%; }
+        input[type=range] { width: 100%; cursor: pointer; }
 
         button {
             width: 100%;
@@ -87,10 +85,11 @@
             font-size: 1.1rem;
             cursor: pointer;
             transition: 0.2s;
+            font-weight: bold;
         }
 
         .start-btn { background: #60a5fa; color: white; }
-        .start-btn:hover { transform: scale(1.02); }
+        .start-btn:hover { background: #3b82f6; }
         .music-btn { background: #c4b5fd; color: #312e81; }
 
         .counter {
@@ -105,19 +104,21 @@
         .tip { margin-top: 20px; font-size: 0.95rem; color: #64748b; }
     </style>
 </head>
-
 <body>
 
 <div class="container">
     <h1>🌈 Klassenruhe</h1>
-    <div class="subtitle">Gemeinsam schaffen wir eine ruhige Klasse 😊</div>
+    <div class="subtitle">Wir achten gemeinsam auf unsere Lautstärke</div>
 
     <div id="smiley" class="smiley good">😊</div>
     <div id="message" class="message">Super ruhig 🌿</div>
-    <div id="volume" class="volume">0</div>
+
+    <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+    </div>
 
     <div class="slider-box">
-        <label>Empfindlichkeit: <span id="thresholdText">55</span></label>
+        <label>Empfindlichkeit einstellen: <span id="thresholdText">55</span></label>
         <input type="range" min="20" max="120" value="55" id="threshold">
     </div>
 
@@ -128,9 +129,7 @@
         🔴 Heute zu laut: <span id="redCounter">0</span> mal
     </div>
 
-    <div class="tip">
-        💡 Tipp: Sprecht leise miteinander und beobachtet den Smiley 😊
-    </div>
+    <div class="tip">💡 Tipp: Beobachtet den Balken – bleibt er im grünen Bereich?</div>
 </div>
 
 <audio id="bgMusic" loop>
@@ -140,14 +139,14 @@
 <script>
     const smiley = document.getElementById("smiley");
     const message = document.getElementById("message");
-    const volumeText = document.getElementById("volume");
+    const progressBar = document.getElementById("progressBar");
     const threshold = document.getElementById("threshold");
     const thresholdText = document.getElementById("thresholdText");
 
     let redCount = 0;
     let wasBad = false;
     let lastStatusChange = 0;
-    const holdTime = 5000; // 5 Sekunden Pause vor dem Zurückspringen
+    const holdTime = 2000; 
     let currentMood = "good";
 
     threshold.oninput = () => {
@@ -172,14 +171,17 @@
                     values += dataArray[i];
                 }
                 let average = Math.round(values / dataArray.length);
-                volumeText.innerText = average;
+                
+                // Balken aktualisieren (Skalierung bis 120 für die Anzeige)
+                let percentage = Math.min((average / 120) * 100, 100);
+                progressBar.style.width = percentage + "%";
 
                 updateMood(average);
                 requestAnimationFrame(update);
             }
             update();
         } catch (err) {
-            alert("Mikrofon konnte nicht gestartet werden. Bitte Zugriff erlauben.");
+            alert("Bitte Mikrofon-Zugriff erlauben!");
         }
     }
 
@@ -188,7 +190,6 @@
         const now = Date.now();
         
         let newMood = "good";
-        // Logik: Alarm bei 80%, Mittelbereich ab 40%
         if (volume >= limit * 0.8) {
             newMood = "bad";
         } else if (volume >= limit * 0.4) {
@@ -197,38 +198,36 @@
 
         const moodOrder = { "good": 1, "medium": 2, "bad": 3 };
 
-        // Wenn es lauter wird: Sofort umschalten
         if (moodOrder[newMood] > moodOrder[currentMood]) {
             currentMood = newMood;
             lastStatusChange = now;
-        } 
-        // Wenn es leiser wird: Nur nach der 'holdTime' zurückspringen
-        else if (moodOrder[newMood] < moodOrder[currentMood]) {
-            if (now - lastStatusChange < holdTime) {
-                // Keine Änderung, wir halten den alten Status
-            } else {
+        } else if (moodOrder[newMood] < moodOrder[currentMood]) {
+            if (now - lastStatusChange >= holdTime) {
                 currentMood = newMood;
                 lastStatusChange = now;
             }
         }
 
-        // Anzeige basierend auf currentMood aktualisieren
+        // Anzeige & Balkenfarbe aktualisieren
         smiley.className = "smiley";
         
         if (currentMood === "good") {
             smiley.innerText = "😊";
             smiley.classList.add("good");
             message.innerText = "Super ruhig 🌿";
+            progressBar.style.backgroundColor = "#22c55e"; // Grün
             wasBad = false;
         } else if (currentMood === "medium") {
             smiley.innerText = "😐";
             smiley.classList.add("medium");
             message.innerText = "Etwas leiser bitte 🌈";
+            progressBar.style.backgroundColor = "#eab308"; // Gelb
             wasBad = false;
         } else if (currentMood === "bad") {
             smiley.innerText = "😵";
             smiley.classList.add("bad");
             message.innerText = "Ups 😅 Wir schaffen das leiser";
+            progressBar.style.backgroundColor = "#ef4444"; // Rot
             
             playSoftBell();
 
@@ -243,7 +242,7 @@
     let lastBell = 0;
     function playSoftBell() {
         const now = Date.now();
-        if (now - lastBell < 3000) return; // Glocke nur alle 3 Sek.
+        if (now - lastBell < 3000) return;
         lastBell = now;
 
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
