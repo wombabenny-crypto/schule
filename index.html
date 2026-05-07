@@ -54,20 +54,20 @@
             min-height: 50px;
         }
 
-        /* Der neue Lautstärkebalken */
+        /* Fortschrittsbalken Design */
         .progress-container {
             width: 100%;
-            height: 30px;
+            height: 35px;
             background: #e2e8f0;
-            border-radius: 15px;
-            margin-bottom: 25px;
+            border-radius: 18px;
+            margin: 10px 0 30px 0;
             overflow: hidden;
             border: 3px solid #f1f5f9;
         }
 
         .progress-bar {
             height: 100%;
-            width: 0%; /* Wird per JS gesteuert */
+            width: 0%;
             background: #22c55e;
             transition: width 0.1s ease-out, background-color 0.3s;
         }
@@ -89,7 +89,6 @@
         }
 
         .start-btn { background: #60a5fa; color: white; }
-        .start-btn:hover { background: #3b82f6; }
         .music-btn { background: #c4b5fd; color: #312e81; }
 
         .counter {
@@ -118,7 +117,7 @@
     </div>
 
     <div class="slider-box">
-        <label>Empfindlichkeit einstellen: <span id="thresholdText">55</span></label>
+        <label>Empfindlichkeit: <span id="thresholdText">55</span></label>
         <input type="range" min="20" max="120" value="55" id="threshold">
     </div>
 
@@ -129,7 +128,7 @@
         🔴 Heute zu laut: <span id="redCounter">0</span> mal
     </div>
 
-    <div class="tip">💡 Tipp: Beobachtet den Balken – bleibt er im grünen Bereich?</div>
+    <div class="tip">💡 Tipp: Haltet den Balken im grünen Bereich!</div>
 </div>
 
 <audio id="bgMusic" loop>
@@ -172,8 +171,8 @@
                 }
                 let average = Math.round(values / dataArray.length);
                 
-                // Balken aktualisieren (Skalierung bis 120 für die Anzeige)
-                let percentage = Math.min((average / 120) * 100, 100);
+                // Balken-Breite berechnen
+                let percentage = Math.min((average / 100) * 100, 100);
                 progressBar.style.width = percentage + "%";
 
                 updateMood(average);
@@ -181,7 +180,7 @@
             }
             update();
         } catch (err) {
-            alert("Bitte Mikrofon-Zugriff erlauben!");
+            alert("Mikrofon-Zugriff verweigert.");
         }
     }
 
@@ -208,26 +207,25 @@
             }
         }
 
-        // Anzeige & Balkenfarbe aktualisieren
         smiley.className = "smiley";
         
         if (currentMood === "good") {
             smiley.innerText = "😊";
             smiley.classList.add("good");
             message.innerText = "Super ruhig 🌿";
-            progressBar.style.backgroundColor = "#22c55e"; // Grün
+            progressBar.style.backgroundColor = "#22c55e"; 
             wasBad = false;
         } else if (currentMood === "medium") {
             smiley.innerText = "😐";
             smiley.classList.add("medium");
             message.innerText = "Etwas leiser bitte 🌈";
-            progressBar.style.backgroundColor = "#eab308"; // Gelb
+            progressBar.style.backgroundColor = "#eab308"; 
             wasBad = false;
         } else if (currentMood === "bad") {
             smiley.innerText = "😵";
             smiley.classList.add("bad");
             message.innerText = "Ups 😅 Wir schaffen das leiser";
-            progressBar.style.backgroundColor = "#ef4444"; // Rot
+            progressBar.style.backgroundColor = "#ef4444"; 
             
             playSoftBell();
 
@@ -244,18 +242,14 @@
         const now = Date.now();
         if (now - lastBell < 3000) return;
         lastBell = now;
-
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-
         oscillator.type = "triangle";
         oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(659.25, audioContext.currentTime + 0.25);
-
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1);
-
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         oscillator.start();
@@ -274,6 +268,5 @@
         }
     }
 </script>
-
 </body>
 </html>
