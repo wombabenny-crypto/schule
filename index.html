@@ -100,10 +100,20 @@
         }
 
         .tip { margin-top: 20px; font-size: 0.95rem; color: #64748b; }
-    </style>
-</head>
-<body>
 
+        /* YouTube-Player unsichtbar */
+        #ytMusic {
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        }
+    </style>
+
+    <!-- ✅ YouTube IFrame API (für Lautstärke-Steuerung per JS) -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+</head>
+
+<body>
 <div class="container">
     <h1>🌈 Klassenruhe</h1>
     <div class="subtitle">Wir achten gemeinsam auf unsere Lautstärke</div>
@@ -121,7 +131,9 @@
     </div>
 
     <button class="start-btn" onclick="startMic()">🎤 Mikrofon starten</button>
-    <button class="music-btn" onclick="toggleYouTube()" id="ytBtn">🎬 Ruhige Musik starten</button>
+
+    <!-- ✅ unter dem Mikrofon-Button -->
+    <button class="music-btn" onclick="toggleYouTube()" id="ytBtn">🎬 YouTube starten</button>
 
     <div class="counter">
         🔴 Heute zu laut: <span id="redCounter">0</span> mal
@@ -130,15 +142,8 @@
     <div class="tip">💡 Tipp: Haltet den Balken im grünen Bereich!</div>
 </div>
 
-
-<iframe 
-    id="ytMusic"
-    width="0" 
-    height="0" 
-    src="https://www.youtube.com/embed/g_3cIWgZ5C8?autoplay=0&loop=1&playlist=g_3cIWgZ5C8"
-    frameborder="0"
-    allow="autoplay">
-</iframe>
+<!-- ✅ Player-Platzhalter (API ersetzt das durch ein iframe) -->
+<div id="ytMusic"></div>
 
 <script>
     const smiley = document.getElementById("smiley");
@@ -150,13 +155,98 @@
     let redCount = 0;
     let wasBad = false;
     let lastStatusChange = 0;
-    const holdTime = 2000; 
+    const holdTime = 2000;
     let currentMood = "good";
 
     threshold.oninput = () => {
         thresholdText.innerText = threshold.value;
     };
 
+    /* -----------------------------
+       ✅ YouTube: Player + Ducking
+    ------------------------------ */
+    const YT_VIDEO_ID = "g_3cIWgZ5C8";
+
+    // Lautstärken (0..100) – kannst du easy anpassen:
+    const VOL_GREEN  = 50; // normal
+    const VOL_ORANGE = 25; // etwas leiser
+    const VOL_RED    = 10; // sehr leise
+
+    let player = null;
+    let ytReady = false;
+    let ytPlaying = false;
+
+    // gegen API-Spam
+    let lastAppliedVol = -1;
+    let lastVolTime = 0;
+    const VOL_DEBOUNCE_MS = 250;
+
+    // YouTube API ruft diese Funktion automatisch auf, wenn geladen
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player("ytMusic", {
+            width: "0",
+            height: "0",
+            videoId: YT_VIDEO_ID,
+            playerVars: {
+                autoplay: 0,
+                loop: 1,
+                playlist: YT_VIDEO_ID, // nötig für loop
+                controls: 0,
+                fs: 0,
+                modestbranding: 1
+            },
+            events: {
+                onReady: (e) => {
+                    ytReady = true;
+                    e.target.setVolume(VOL_GREEN); // Startlautstärke
+                }
+            }
+        });
+    }
+
+    function toggleYouTube() {
+        const btn = document.getElementById("ytBtn");
+        if (!ytReady || !player) return;
+
+        if (!ytPlaying) {
+            player.playVideo();
+            // beim Start direkt auf "grün" setzen
+            safeSetYTVolume(VOL_GREEN);
+            btn.innerText = "⏸ YouTube stoppen";
+            ytPlaying = true;
+        } else {
+            player.stopVideo();
+            btn.innerText = "🎬 YouTube starten";
+            ytPlaying = false;
+        }
+    }
+
+    function safeSetYTVolume(vol) {
+        if (!ytReady || !player) return;
+        const now = Date.now();
+        if (vol === lastAppliedVol) return;
+        if (now - lastVolTime < VOL_DEBOUNCE_MS) return;
+
+        // setVolume(0..100)
+        player.setVolume(vol);
+        lastAppliedVol = vol;
+        lastVolTime = now;
+    }
+
+    // Diese Funktion entscheidet je nach Lärm die Lautstärke
+    function applyYouTubeDucking(percentage) {
+        if (!ytPlaying) return; // nur wenn Musik aktiv ist
+
+        let targetVol = VOL_GREEN;
+        if (percentage >= 80) targetVol = VOL_RED;
+        else if (percentage >= 40) targetVol = VOL_ORANGE;
+
+        safeSetYTVolume(targetVol);
+    }
+
+    /* -----------------------------
+       ✅ Mikrofon / Balken / Smiley
+    ------------------------------ */
     async function startMic() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -172,30 +262,24 @@
                 analyser.getByteFrequencyData(dataArray);
 
                 let values = 0;
-                for (let i = 0; i < dataArray.length; i++) {
-                    values += dataArray[i];
-                }
-
+                for (let i = 0; i < dataArray.length; i++) values += dataArray[i];
                 let average = Math.round(values / dataArray.length);
 
                 const limit = parseInt(threshold.value);
-
                 let percentage = Math.min((average / limit) * 100, 100);
                 progressBar.style.width = percentage + "%";
 
                 // ✅ FESTE FARBZONEN
-                if (percentage < 40) {
-                    progressBar.style.backgroundColor = "#22c55e";
-                } else if (percentage < 80) {
-                    progressBar.style.backgroundColor = "#eab308";
-                } else {
-                    progressBar.style.backgroundColor = "#ef4444";
-                }
+                if (percentage < 40) progressBar.style.backgroundColor = "#22c55e";
+                else if (percentage < 80) progressBar.style.backgroundColor = "#eab308";
+                else progressBar.style.backgroundColor = "#ef4444";
+
+                // ✅ YouTube automatisch leiser bei Lärm
+                applyYouTubeDucking(percentage);
 
                 updateMood(average);
                 requestAnimationFrame(update);
             }
-
             update();
 
         } catch (err) {
@@ -208,12 +292,8 @@
         const now = Date.now();
 
         let newMood = "good";
-
-        if (volume >= limit * 0.8) {
-            newMood = "bad";
-        } else if (volume >= limit * 0.4) {
-            newMood = "medium";
-        }
+        if (volume >= limit * 0.8) newMood = "bad";
+        else if (volume >= limit * 0.4) newMood = "medium";
 
         const moodOrder = { "good": 1, "medium": 2, "bad": 3 };
 
@@ -257,11 +337,9 @@
     }
 
     let lastBell = 0;
-
     function playSoftBell() {
         const now = Date.now();
         if (now - lastBell < 3000) return;
-
         lastBell = now;
 
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -281,23 +359,6 @@
         oscillator.start();
         oscillator.stop(audioContext.currentTime + 1);
     }
-
-    let ytPlaying = false;
-
-function toggleYouTube() {
-    const iframe = document.getElementById("ytMusic");
-    const btn = document.getElementById("ytBtn");
-
-    if (!ytPlaying) {
-        iframe.src = "https://www.youtube.com/embed/g_3cIWgZ5C8?autoplay=1&loop=1&playlist=g_3cIWgZ5C8";
-        btn.innerText = "⏸ YouTube stoppen";
-        ytPlaying = true;
-    } else {
-        iframe.src = "";
-        btn.innerText = "🎬 YouTube starten";
-        ytPlaying = false;
-    }
-}
 </script>
 
 </body>
