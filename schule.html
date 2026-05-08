@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1. Klasse</title>
+<title>Startseite</title>
 <!-- Passwort-Schutz -->
   <script>
 
@@ -22,137 +22,59 @@ body {
     font-family: Arial, sans-serif;
     background: #f4f6fb;
     margin: 0;
-    padding: 20px;
+    padding: 30px;
+    text-align: center;
 }
 
 h1 {
-    text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
 }
 
-/* Jahreszeiten Titel */
-.season {
-    margin-top: 25px;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-/* Farben für Jahreszeiten */
-.herbst { color: #e67e22; }
-.winter { color: #3498db; }
-.fruehling { color: #2ecc71; }
-.sommer { color: #e74c3c; }
-
-/* Dropdown Buttons */
-.accordion {
-    background: #ffffff;
-    cursor: pointer;
-    padding: 14px;
-    width: 100%;
-    border: none;
-    text-align: left;
-    font-size: 15px;
-    margin-top: 5px;
-    border-radius: 8px;
-    transition: 0.2s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.accordion:hover {
-    background: #ecf0f1;
-}
-
-/* Inhalt */
-.panel {
-    display: none;
+/* Button Style */
+.button {
+    display: block;
+    width: 250px;
+    margin: 15px auto;
     padding: 15px;
-    margin-bottom: 10px;
-    background: white;
-    border-radius: 8px;
-}
-
-/* Platzhalter */
-.placeholder {
-    text-align: center;
-    color: #777;
-    padding: 30px;
-    border: 2px dashed #ccc;
-    border-radius: 6px;
-}
-
-/* iframe */
-.frame {
-    width: 100%;
-    height: 500px;
-    border: none;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
     border-radius: 10px;
+    transition: 0.3s;
+}
+
+/* Farben */
+.btn1 { background: #3498db; }
+.btn2 { background: #2ecc71; }
+.btn3 { background: #e67e22; }
+
+/* Hover Effekt */
+.button:hover {
+    opacity: 0.8;
 }
 </style>
+  <!-- Passwort-Schutz -->
+<script>
+
+if (sessionStorage.getItem("loggedIn") !== "true") {
+
+    sessionStorage.setItem("redirectAfterLogin", window.location.href);
+
+    window.location.href = "index.html";
+}
+
+</script>
 
 </head>
-
 <body>
 
-<h1>📚 1. Klasse – Religion</h1>
+<h1>📂 Übersicht</h1>
 
-<!-- HERBST -->
-<div class="season herbst">🍂 Herbst</div>
+<a href="1.klasse/1.klasse.html" class="button btn1">📚 1. Klasse</a>
 
-<button class="accordion">08.10 – Schöpfung</button>
-<div class="panel">
-    <div class="placeholder">➜ Material hier</div>
-</div>
+<a href="2.klasse/2.klasse.html" class="button btn2">📘 2. Klasse</a>
 
-<button class="accordion">15.10 – Gott & Welt</button>
-<div class="panel">
-    <div class="placeholder">➜ Material hier</div>
-</div>
-
-<!-- WINTER -->
-<div class="season winter">❄️ Winter</div>
-
-<button class="accordion">10.12 – Advent</button>
-<div class="panel">
-    <div class="placeholder">➜ Material hier</div>
-</div>
-
-<button class="accordion">20.12 – Weihnachten</button>
-<div class="panel">
-    <div class="placeholder">➜ Material hier</div>
-</div>
-
-<!-- FRÜHLING -->
-<div class="season fruehling">🌸 Frühling</div>
-
-<button class="accordion">20.03 – Ostern</button>
-<div class="panel">
-    <div class="placeholder">➜ Material hier</div>
-</div>
-
-<!-- SOMMER -->
-<div class="season sommer">☀️ Sommer</div>
-
-<button class="accordion">10.06 – Abschluss</button>
-<div class="panel">
-    <div class="placeholder">➜ Material hier</div>
-</div>
-
-<script>
-var acc = document.getElementsByClassName("accordion");
-
-for (let i = 0; i < acc.length; i++) {
-    acc[i].addEventListener("click", function() {
-
-        // alle schließen
-        for (let j = 0; j < acc.length; j++) {
-            acc[j].nextElementSibling.style.display = "none";
-        }
-
-        // nur dieses öffnen
-        this.nextElementSibling.style.display = "block";
-    });
-}
-</script>
+<a href="apps/ruheampel.html" class="button btn3">🚦 Ruheampel</a>
 
 </body>
 </html>
