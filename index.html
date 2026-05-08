@@ -130,7 +130,9 @@
       <input type="range" min="20" max="120" value="55" id="threshold">
     </div>
 
-    <button class="start-btn" onclick="startMic()">🎤 Mikrofon starten</button>
+    <button class="start-btn" onclick="toggleMic()" id="micBtn">
+      🎤 Mikrofon starten
+    </button>
     <button class="music-btn" onclick="toggleYouTube()" id="ytBtn">🎬 Ruhige Musik starten</button>
 
     <div class="counter">
@@ -158,7 +160,10 @@
     let lastStatusChange = 0;
     const holdTime = 2000;
     let currentMood = "good";
-
+    let micStream = null;
+    let micRunning = false;
+    let animationId = null;
+    
     threshold.oninput = () => {
       thresholdText.innerText = threshold.value;
     };
@@ -294,9 +299,25 @@
     /* -----------------------------
        ✅ Mikrofon / Balken / Smiley
     ------------------------------ */
+    async function toggleMic(){
+
+  if(micRunning){
+
+        stopMic();
+    
+      }else{
+    
+        startMic();
+      }
+    }
     async function startMic() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micStream = stream;
+        micRunning = true;
+
+      document.getElementById("micBtn").innerText =
+        "🛑 Mikrofon stoppen";
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const microphone = audioContext.createMediaStreamSource(stream);
         const analyser = audioContext.createAnalyser();
@@ -325,7 +346,7 @@
           applyYouTubeDucking(percentage);
 
           updateMood(average);
-          requestAnimationFrame(update);
+          animationId = requestAnimationFrame(update);
         }
 
         update();
@@ -409,6 +430,33 @@
       oscillator.start();
       oscillator.stop(audioContext.currentTime + 1);
     }
+    function stopMic(){
+
+  if(micStream){
+
+    micStream.getTracks().forEach(track => {
+      track.stop();
+    });
+
+    micStream = null;
+  }
+
+  micRunning = false;
+
+  cancelAnimationFrame(animationId);
+
+  document.getElementById("micBtn").innerText =
+    "🎤 Mikrofon starten";
+
+  // Anzeige zurücksetzen
+
+  progressBar.style.width = "0%";
+
+  smiley.innerText = "😊";
+  smiley.className = "smiley good";
+
+  message.innerText = "Mikrofon gestoppt 🌿";
+}
   </script>
 </body>
 </html>
