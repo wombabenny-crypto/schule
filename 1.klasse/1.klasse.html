@@ -2,76 +2,67 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1. Klasse</title>
+<title>Religion 1. Klasse</title>
 
 <style>
 body {
     font-family: Arial, sans-serif;
-    background: #f4f6fb;
     margin: 0;
+    background: #f0f2f5;
+    text-align: center;
 }
 
 /* Header */
-h1 {
-    text-align: center;
-    padding: 20px;
-    margin: 0;
-}
-
-/* Tabs */
-.tab-bar {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px;
-}
-
-.tab {
-    padding: 12px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    border: none;
+.header {
+    background: #4CAF50;
     color: white;
-    font-size: 14px;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
 }
 
-/* Farben */
-.tab1 { background: #3498db; }
-.tab2 { background: #2ecc71; }
-.tab3 { background: #e67e22; }
+/* Grid Layout */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    padding: 20px;
+}
 
-/* Inhalt */
+/* App Buttons */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 16px;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+/* Inhalte */
 .content {
     display: none;
+    margin: 20px;
     padding: 20px;
-    max-width: 900px;
-    margin: auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* Aktiver Tab */
-.active {
-    display: block;
-}
-
-/* Dokument Rahmen */
-.frame {
+iframe {
     width: 100%;
     height: 500px;
     border: none;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
 }
 
-/* Placeholder */
-.placeholder {
-    text-align: center;
-    padding: 40px;
-    color: #777;
-}
+
 </style>
- <!-- Passwort-Schutz -->
+<!-- Passwort-Schutz -->
   <script>
 
 
@@ -88,51 +79,91 @@ if (sessionStorage.getItem("loggedIn") !== "true") {
 
 <body>
 
-<h1>📚 1. Klasse</h1>
+<div class="header" style="
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+">
 
-<!-- Tabs -->
-<div class="tab-bar">
+    <!-- Zurück Button -->
+    <button onclick="goBack()" style="
+        background: white;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 16px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    ">
+        ←
+    </button>
 
-    <button class="tab tab1" onclick="openTab('t1')">08.05.26</button>
-    <button class="tab tab2" onclick="openTab('t2')">10.05.26</button>
-    <button class="tab tab3" onclick="openTab('t3')">12.05.26</button>
+    <!-- Titel -->
+    <div style="flex:1; text-align:center; font-weight:bold;">
+        📖 Religion – 1. Klasse
+    </div>
+
+    <!-- Platzhalter damit es mittig bleibt -->
+    <div style="width:40px;"></div>
+
+</div>
+
+<div class="grid">
+
+<div class="card" onclick="toggle('sep')">📅 September</div>
+<div class="card" onclick="toggle('okt')">🍂 Oktober</div>
+<div class="card" onclick="toggle('nov')">🌧️ November</div>
+<div class="card" onclick="toggle('dez')">🎄 Dezember</div>
+
+<div class="card" onclick="toggle('jan')">❄ Januar</div>
+<div class="card" onclick="toggle('feb')">⛄ Februar</div>
+<div class="card" onclick="toggle('mär')">🌱 März</div>
+
+<div class="card" onclick="toggle('apr')">🌸 April</div>
+<div class="card" onclick="toggle('mai')">🌼 Mai</div>
+<div class="card" onclick="toggle('jun')">☀ Juni</div>
 
 </div>
 
 <!-- Inhalte -->
 
-<div id="t1" class="content active">
-    <div class="placeholder">
-        ➜ Hier kommt dein Material (Google Drive)
-    </div>
+<div id="sep" class="content">
+<h2>September</h2>
+<p>Stunden 1–8</p>
 
-    <!-- Beispiel später:
-    <iframe class="frame" src="https://drive.google.com/file/d/ID/preview"></iframe>
-    -->
+<!-- Beispiel Drive -->
+<!-- HIER DEIN ORDNER -->
 </div>
 
-<div id="t2" class="content">
-    <div class="placeholder">
-        ➜ Hier kommt dein Material (Google Drive)
-    </div>
-</div>
+<div id="okt" class="content"><h2>Oktober</h2></div>
+<div id="nov" class="content"><h2>November</h2></div>
+<div id="dez" class="content"><h2>Dezember</h2></div>
 
-<div id="t3" class="content">
-    <div class="placeholder">
-        ➜ Hier kommt dein Material (Google Drive)
-    </div>
-</div>
+<div id="jan" class="content"><h2>Januar</h2></div>
+<div id="feb" class="content"><h2>Februar</h2></div>
+<div id="mär" class="content"><h2>März</h2></div>
+
+<div id="apr" class="content"><h2>April</h2></div>
+<div id="mai" class="content"><h2>Mai</h2></div>
+<div id="jun" class="content"><h2>Juni</h2></div>
 
 <script>
-function openTab(tabId) {
-    var contents = document.getElementsByClassName("content");
+function toggle(id) {
 
-    for (var i = 0; i < contents.length; i++) {
-        contents[i].classList.remove("active");
-    }
+    // alles schließen
+    document.querySelectorAll(".content").forEach(el => {
+        if (el.id !== id) el.style.display = "none";
+    });
 
-    document.getElementById(tabId).classList.add("active");
+    var el = document.getElementById(id);
+    el.style.display = (el.style.display === "block") ? "none" : "block";
 }
+
+function goBack() {
+    window.history.back();
+}
+
 </script>
 
 </body>
