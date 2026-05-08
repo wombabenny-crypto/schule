@@ -139,8 +139,8 @@ function login(){
 
     if(pw === "schule321"){
 
-        window.location.href =
-            "schule.html";
+       sessionStorage.setItem("loggedIn","true");
+        window.location.href = "schule.html";
 
     }else{
 
