@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1. Klasse</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6fb;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+
+/* Buttons (Stunden) */
+.accordion {
+    background: #2c3e50;
+    color: white;
+    cursor: pointer;
+    padding: 14px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    font-size: 16px;
+    margin-bottom: 5px;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+.accordion:hover {
+    background: #34495e;
+}
+
+/* Inhalt (ausklappbar) */
+.panel {
+    display: none;
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Platzhalter Design */
+.placeholder {
+    text-align: center;
+    color: #888;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    border-radius: 6px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>📚 1. Klasse</h1>
+
+<div class="container">
+
+    <button class="accordion">📅 08.05.26</button>
+    <div class="panel">
+        <div class="placeholder">
+            ➜ Hier kommt dein Material (Google Drive)
+        </div>
+    </div>
+
+    <button class="accordion">📅 10.05.26</button>
+    <div class="panel">
+        <div class="placeholder">
+            ➜ Hier kommt dein Material (Google Drive)
+        </div>
+    </div>
+
+    <button class="accordion">📅 12.05.26</button>
+    <div class="panel">
+        <div class="placeholder">
+            ➜ Hier kommt dein Material (Google Drive)
+        </div>
+    </div>
+
+</div>
+
+<script>
+var acc = document.getElementsByClassName("accordion");
+
+for (let i = 0; i < acc.length; i++) {
+    acc[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var panel = this.nextElementSibling;
+
+        if (panel.style.display === "block") {
+            panel.style.display = "none";
+        } else {
+            panel.style.display = "block";
+        }
+    });
+}
+</script>
+
+</body>
+</html>
