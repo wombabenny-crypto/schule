@@ -79,6 +79,7 @@ if (sessionStorage.getItem("loggedIn") !== "true") {
 
 <body>
 
+
 <div class="header" style="
     display: flex;
     align-items: center;
@@ -86,26 +87,41 @@ if (sessionStorage.getItem("loggedIn") !== "true") {
     padding: 15px 20px;
 ">
 
-    <!-- Zurück Button -->
+    <!-- LINKS: Zurück -->
     <button onclick="goBack()" style="
         background: white;
         border: none;
         border-radius: 12px;
         padding: 10px 15px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 18px;
         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     ">
         ←
     </button>
 
-    <!-- Titel -->
-    <div style="flex:1; text-align:center; font-weight:bold;">
+    <!-- MITTE: Titel -->
+    <div style="
+        flex: 1;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+    ">
         📖 Religion – 1. Klasse
     </div>
 
-    <!-- Platzhalter damit es mittig bleibt -->
-    <div style="width:40px;"></div>
+    <!-- RECHTS: Home -->
+    <button onclick="goHome()" style="
+        background: white;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 18px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    ">
+        🏠
+    </button>
 
 </div>
 
@@ -162,6 +178,11 @@ function toggle(id) {
 
 function goBack() {
     window.history.back();
+}
+
+
+function goHome() {
+    window.location.href = "../schule.html";
 }
 
 </script>
