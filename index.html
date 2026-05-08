@@ -9,7 +9,6 @@
 <style>
 
 body{
-
     margin:0;
     font-family:Arial,sans-serif;
 
@@ -27,74 +26,48 @@ body{
 }
 
 .login-box{
-
     background:white;
-
     padding:40px;
-
     border-radius:30px;
-
     width:90%;
     max-width:400px;
-
     text-align:center;
-
     box-shadow:0 10px 30px rgba(0,0,0,0.1);
 }
 
 h1{
-
     margin-bottom:10px;
 }
 
 p{
-
     color:#666;
     margin-bottom:25px;
 }
 
 input{
-
     width:100%;
-
     padding:15px;
-
     border-radius:15px;
-
     border:2px solid #ddd;
-
     font-size:1rem;
-
     margin-bottom:20px;
-
     box-sizing:border-box;
 }
 
 button{
-
     width:100%;
-
     padding:15px;
-
     border:none;
-
     border-radius:15px;
-
     background:#60a5fa;
-
     color:white;
-
     font-size:1rem;
-
     cursor:pointer;
 }
 
 .error{
-
     color:red;
-
     margin-top:15px;
-
     display:none;
 }
 
@@ -129,27 +102,34 @@ button{
 
 <script>
 
+// Wenn schon eingeloggt → direkt weiter
+if (sessionStorage.getItem("loggedIn") === "true") {
+    const redirect = sessionStorage.getItem("redirectAfterLogin");
+    if (redirect) {
+        window.location.href = redirect;
+    }
+}
+
 function login(){
 
-    const pw =
-        document.getElementById("password")
-        .value;
+    const pw = document.getElementById("password").value;
 
     // HIER PASSWORT ÄNDERN
-
     if(pw === "schule321"){
 
-       sessionStorage.setItem("loggedIn","true");
-        window.location.href = "schule.html";
+        // Login setzen
+        sessionStorage.setItem("loggedIn","true");
+
+        // Zielseite holen
+        const redirect = sessionStorage.getItem("redirectAfterLogin");
+
+        if (redirect) {
+            window.location.href = redirect;
+        } else {
+            // optional fallback:
+            window.location.href = "schule.html";
+        }
 
     }else{
 
         document.getElementById("error")
-            .style.display = "block";
-    }
-}
-
-</script>
-
-</body>
-</html>
