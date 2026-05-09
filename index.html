@@ -5,11 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login 🔒</title>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; background: linear-gradient(180deg, #dff6ff, #fef6e4); height: 100vh; display: flex; justify-content: center; align-items: center; }
-        .login-box { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #ddd; font-size: 1rem; margin-bottom: 20px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 15px; background: #60a5fa; color: white; font-size: 1rem; cursor: pointer; }
-        .error { color: red; margin-top: 15px; display: none; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(180deg, #dff6ff, #fef6e4);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 { margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 25px; }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid #ddd;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input:focus { border-color: #60a5fa; }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            background: #60a5fa;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover { background: #3b82f6; }
+
+        .error {
+            color: red;
+            margin-top: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -18,39 +68,51 @@
     <h1>🔒 Klassenruhe</h1>
     <p>Bitte Passwort eingeben</p>
 
-    <form onsubmit="checkLogin(event)">
-        <input type="password" id="password" placeholder="Passwort" required>
+    <form onsubmit="login(event)">
+        <input
+            type="password"
+            id="password"
+            placeholder="Passwort"
+            required
+        >
         <button type="submit">Login</button>
     </form>
 
-    <div id="error" class="error">Falsches Passwort 😅</div>
+    <div id="error" class="error">
+        Falsches Passwort 😅
+    </div>
 </div>
 
 <script>
-    // Diese Funktion macht aus einem Text einen unumkehrbaren Zahlencode
-    function simpleHash(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash |= 0; 
+    // Falls man bereits eingeloggt ist, sofort weiterleiten
+    if (sessionStorage.getItem("loggedIn") === "true") {
+        const redirect = sessionStorage.getItem("redirectAfterLogin");
+        if (redirect) {
+            window.location.href = redirect;
         }
-        return hash;
     }
 
-    function checkLogin(event) {
+    function login(event) {
         event.preventDefault();
-        const input = document.getElementById("password").value;
-        
-        
-        const targetHash = -1227038814;
 
-        if (simpleHash(input) === targetHash) {
+        const pw = document.getElementById("password").value;
+        const errorDiv = document.getElementById("error");
+
+        // Das ist "schule321" in Base64-Verschleierung
+        const secret = "c2NodWxlMzIx"; 
+
+        // btoa(pw) wandelt deine Eingabe um und vergleicht sie mit dem Secret
+        if (btoa(pw) === secret) {
             sessionStorage.setItem("loggedIn", "true");
             const redirect = sessionStorage.getItem("redirectAfterLogin");
-            window.location.href = redirect ? redirect : "schule.html";
+            
+            if (redirect) {
+                window.location.href = redirect;
+            } else {
+                window.location.href = "schule.html";
+            }
         } else {
-            document.getElementById("error").style.display = "block";
+            errorDiv.style.display = "block";
             document.getElementById("password").value = "";
         }
     }
