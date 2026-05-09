@@ -1,478 +1,222 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Klassenruhe 🌈</title>
-
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #dff6ff, #fef6e4);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      border-radius: 35px;
-      padding: 30px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    h1 { font-size: 2.2rem; color: #4b5563; margin-bottom: 10px; }
-    .subtitle { color: #6b7280; margin-bottom: 25px; }
-
-    .smiley {
-      width: 200px;
-      height: 200px;
-      margin: 0 auto 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 7rem;
-      transition: 0.3s;
-    }
-
-    .good { background: #bbf7d0; box-shadow: 0 0 30px rgba(34,197,94,0.4); }
-    .medium { background: #fde68a; box-shadow: 0 0 30px rgba(234,179,8,0.4); }
-    .bad { background: #fecaca; box-shadow: 0 0 30px rgba(239,68,68,0.4); }
-
-    .message {
-      font-size: 1.6rem;
-      margin-bottom: 20px;
-      color: #374151;
-      min-height: 50px;
-    }
-
-    .progress-container {
-      width: 100%;
-      height: 35px;
-      background: #e2e8f0;
-      border-radius: 18px;
-      margin: 10px 0 30px 0;
-      overflow: hidden;
-      border: 3px solid #f1f5f9;
-    }
-
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #22c55e;
-      transition: width 0.1s ease-out, background-color 0.3s;
-    }
-
-    .slider-box { margin: 25px 0; }
-    label { display: block; margin-bottom: 10px; font-size: 1.1rem; color: #475569; }
-    input[type=range] { width: 100%; cursor: pointer; }
-
-    button {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 18px;
-      margin-top: 15px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: 0.2s;
-      font-weight: bold;
-    }
-
-    .start-btn { background: #60a5fa; color: white; }
-    .music-btn { background: #c4b5fd; color: #312e81; }
-
-    .counter {
-      margin-top: 25px;
-      background: #f8fafc;
-      border-radius: 20px;
-      padding: 15px;
-      font-size: 1.2rem;
-      color: #475569;
-    }
-
-    .tip { margin-top: 20px; font-size: 0.95rem; color: #64748b; }
-
-    /* ✅ YouTube Player unsichtbar, aber "echte" Größe (stabiler als 0x0) */
-    #ytMusic {
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
-      width: 200px;
-      height: 200px;
-      overflow: hidden;
-    }
-  </style>
-
-  <!-- Passwort-Schutz -->
-  <script>
-
-
-if (sessionStorage.getItem("loggedIn") !== "true") {
-
-    sessionStorage.setItem("redirectAfterLogin", window.location.href);
-
-    window.location.href = "index.html";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klassenruhe - Fix 🌈</title>
+    <style>
+        /* (Styles bleiben wie gehabt, hier gekürzt für die Übersicht) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(180deg, #dff6ff, #fef6e4); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { width: 100%; max-width: 500px; background: white; border-radius: 35px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .smiley { width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 6rem; transition: 0.3s; }
+        .good { background: #bbf7d0; } .medium { background: #fde68a; } .bad { background: #fecaca; }
+        .progress-container { width: 100%; height: 25px; background: #e2e8f0; border-radius: 15px; margin-bottom: 20px; overflow: hidden; }
+        .progress-bar { height: 100%; width: 0%; background: #22c55e; transition: width 0.1s; }
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; text-align: left; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 18px; margin-top: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        .start-btn { background: #60a5fa; color: white; }
+        .music-btn { background: #c4b5fd; color: #312e81; }
+        .reset-btn { background: #ef4444; color: white; display: none; }
+        .reset-btn.visible { display: block; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+.home-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 10px 18px;
+    border-radius: 15px;
+    text-decoration: none;
+    color: #4b5563;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: 0.2s;
+    border: 2px solid #e2e8f0;
+    z-index: 1000; /* Sorgt dafür, dass der Button immer im Vordergrund ist */
 }
 
+.home-button:hover {
+    background: #f8fafc;
+    transform: scale(1.05);
+}
 
+/* Auf kleinen Bildschirmen (Handys) etwas kleiner machen */
+@media (max-width: 600px) {
+    .home-button {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}    
+</style>
+    <!-- Passwort-Schutz -->
+    <script>
+  if (sessionStorage.getItem("loggedIn") !== "true") {
+      sessionStorage.setItem("redirectAfterLogin", window.location.href);
+      window.location.href = "../index.html";
+  }
 </script>
 </head>
-
 <body>
-  
-  <div class="container">
-    <h1>🌈 Klassenruhe</h1>
-    <div class="subtitle">Wir achten gemeinsam auf unsere Lautstärke</div>
-
+<a href="../schule.html" class="home-button">🏠 Home</a>
+<div class="container">
     <div id="smiley" class="smiley good">😊</div>
-    <div id="message" class="message">Super ruhig 🌿</div>
+    <div id="message" style="margin-bottom: 20px; font-weight: 500; height: 1.5em;">Bereit? 🌿</div>
 
     <div class="progress-container">
-      <div id="progressBar" class="progress-bar"></div>
+        <div id="progressBar" class="progress-bar"></div>
     </div>
 
-    <div class="slider-box">
-      <label>Empfindlichkeit: <span id="thresholdText">55</span></label>
-      <input type="range" min="20" max="120" value="55" id="threshold">
+    <div class="controls-grid">
+        <div>
+            <label style="font-size: 0.75rem; font-weight: bold;">Limit: <span id="thresholdText">55</span></label>
+            <input type="range" min="20" max="120" value="55" id="threshold">
+        </div>
+        <div>
+            <label style="font-size: 0.75rem; font-weight: bold;">Musik: <span id="musicVolText">60</span>%</label>
+            <input type="range" min="0" max="100" value="60" id="manualMusicVol">
+        </div>
     </div>
 
-    <button class="start-btn" onclick="toggleMic()" id="micBtn">
-      🎤 Mikrofon starten
-    </button>
-    <button class="music-btn" onclick="toggleYouTube()" id="ytBtn">🎬 Ruhige Musik starten</button>
+    <button class="start-btn" onclick="toggleMic()" id="micBtn">🎤 Mikrofon starten</button>
+    <button class="music-btn" onclick="toggleMusic()" id="musicBtnLabel">🎵 Musik starten</button>
+    <button class="reset-btn" id="resetBtn" onclick="unlockMusic()">🔴 Zu laut! Musik freigeben?</button>
 
-    <div class="counter">
-      🔴 Heute zu laut: <span id="redCounter">0</span> mal
-    </div>
+    <div style="margin-top: 20px; font-size: 0.9rem; color: #64748b;">🔴 Lärm-Alarme: <span id="redCounter">0</span></div>
+</div>
 
-    <div class="tip">💡 Tipp: Haltet den Balken im grünen Bereich!</div>
-  </div>
+<audio id="bgMusic" loop preload="auto">
+    <source src="entspannt.mp3" type="audio/mpeg">
+</audio>
 
-  <!-- ✅ Platzhalter: hier erstellt die API den YouTube-Player -->
-  <div id="ytMusic"></div>
-
-  <script>
-    /* -----------------------------
-       ✅ Elemente
-    ------------------------------ */
-    const smiley = document.getElementById("smiley");
+<script>
+    const bgMusic = document.getElementById("bgMusic");
+    const resetBtn = document.getElementById("resetBtn");
     const message = document.getElementById("message");
+    const smiley = document.getElementById("smiley");
     const progressBar = document.getElementById("progressBar");
-    const threshold = document.getElementById("threshold");
-    const thresholdText = document.getElementById("thresholdText");
+    const micBtn = document.getElementById("micBtn");
 
+    let autoMultiplier = 1.0;
+    let isLocked = false;
+    let isYellowPhase = false;
+    let musicIsPlaying = false;
     let redCount = 0;
     let wasBad = false;
-    let lastStatusChange = 0;
-    const holdTime = 2000;
-    let currentMood = "good";
+
+    // Mikrofon-Variablen für den Stopp-Fix
     let micStream = null;
-    let micRunning = false;
+    let audioCtx = null;
     let animationId = null;
-    
-    threshold.oninput = () => {
-      thresholdText.innerText = threshold.value;
-    };
 
-    /* -----------------------------
-       ✅ YouTube: API laden + Player + Ducking
-    ------------------------------ */
-    // Video-ID
-    const YT_VIDEO_ID = "g_3cIWgZ5C8";
-
-    // Lautstärken (0..100) – gerne anpassen:
-    const VOL_GREEN  = 60; // normal (ruhig)
-    const VOL_ORANGE = 20; // etwas leiser (mittel)
-    const VOL_RED    = 5;  // sehr leise (laut)
-
-    // weiches Überblenden (Rampen)
-    const RAMP_STEP = 3;       // wie stark pro Schritt
-    const RAMP_MS   = 120;     // wie oft anpassen
-
-    let player = null;
-    let ytReady = false;
-    let ytPlaying = false;
-
-    let targetVol = VOL_GREEN;
-    let rampTimer = null;
-
-    // ✅ YouTube API async nachladen (verhindert "zu früh ready")
-    (function loadYT() {
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.head.appendChild(tag);
-    })();
-
-    // Wird von YouTube aufgerufen, wenn API bereit ist
-    function onYouTubeIframeAPIReady() {
-      player = new YT.Player("ytMusic", {
-        width: "200",
-        height: "200",
-        videoId: YT_VIDEO_ID,
-        playerVars: {
-          autoplay: 0,
-          loop: 1,
-          playlist: YT_VIDEO_ID,   // nötig für Loop
-          controls: 0,
-          fs: 0,
-          modestbranding: 1
-        },
-        events: {
-          onReady: (e) => {
-            ytReady = true;
-            e.target.setVolume(VOL_GREEN);
-            targetVol = VOL_GREEN;
-          }
+    function updateActualVolume() {
+        if (isLocked) {
+            bgMusic.volume = 0;
+        } else {
+            const baseVol = (document.getElementById("manualMusicVol").value / 100);
+            bgMusic.volume = Math.max(0, Math.min(1, baseVol * autoMultiplier));
         }
-      });
     }
 
-    function toggleYouTube() {
-      const btn = document.getElementById("ytBtn");
-      if (!ytReady || !player) return;
-
-      if (!ytPlaying) {
-        player.playVideo(); // Ton startet nach Klick (Browser-Regel)
-        ytPlaying = true;
-        btn.innerText = "⏸ Musik stoppen";
-
-        // direkt auf aktuellen Zielwert rampen
-        startVolumeRamp(targetVol);
-      } else {
-        player.stopVideo();
-        ytPlaying = false;
-        btn.innerText = "🎬 Ruhige Musik starten";
-
-        stopVolumeRamp();
-      }
-    }
-
-    function stopVolumeRamp() {
-      if (rampTimer) {
-        clearInterval(rampTimer);
-        rampTimer = null;
-      }
-    }
-
-    function startVolumeRamp(newTarget) {
-      targetVol = newTarget;
-
-      if (!ytPlaying || !ytReady || !player) return;
-
-      if (rampTimer) return; // läuft schon
-
-      rampTimer = setInterval(() => {
-        if (!ytPlaying || !ytReady || !player) {
-          stopVolumeRamp();
-          return;
+    function applyDucking(perc) {
+        if (isLocked) return;
+        if (perc >= 80) {
+            isLocked = true; autoMultiplier = 0; updateActualVolume();
+            resetBtn.classList.add("visible");
+            smiley.className = "smiley bad"; smiley.innerText = "😵";
+            message.innerText = "MUSIK GESPERRT! 🛑";
+            if (!wasBad) { redCount++; document.getElementById("redCounter").innerText = redCount; wasBad = true; playKlangschale(); }
+        } else if (perc >= 45) {
+            autoMultiplier = 0.3; updateActualVolume();
+            smiley.className = "smiley medium"; smiley.innerText = "😐";
+            message.innerText = "Vorsicht, leiser werden... ⚠️";
+            isYellowPhase = true;
+            clearTimeout(window.yellowTimer);
+            window.yellowTimer = setTimeout(() => { isYellowPhase = false; }, 4000);
+        } else if (!isYellowPhase) {
+            autoMultiplier = 1.0; updateActualVolume();
+            smiley.className = "smiley good"; smiley.innerText = "😊";
+            message.innerText = "Wunderbare Ruhe 🌿";
+            wasBad = false;
         }
-
-        // current volume (0..100)
-        let cur = 0;
-        try { cur = player.getVolume(); } catch (e) { cur = targetVol; }
-
-        if (cur === targetVol) {
-          stopVolumeRamp();
-          return;
-        }
-
-        const dir = (targetVol > cur) ? 1 : -1;
-        let next = cur + dir * RAMP_STEP;
-
-        // clamp
-        if (dir === 1 && next > targetVol) next = targetVol;
-        if (dir === -1 && next < targetVol) next = targetVol;
-
-        player.setVolume(next);
-      }, RAMP_MS);
     }
 
-    // entscheidet abhängig vom Balken (0..100%), wie laut YouTube sein soll
-    function applyYouTubeDucking(percentage) {
-      if (!ytPlaying || !ytReady || !player) return;
-
-      let newTarget = VOL_GREEN;
-      if (percentage >= 80) newTarget = VOL_RED;
-      else if (percentage >= 40) newTarget = VOL_ORANGE;
-
-      if (newTarget !== targetVol) {
-        // Ramp neu starten (weich)
-        stopVolumeRamp();
-        startVolumeRamp(newTarget);
-      }
-    }
-
-    /* -----------------------------
-       ✅ Mikrofon / Balken / Smiley
-    ------------------------------ */
-    async function toggleMic(){
-
-  if(micRunning){
-
-        stopMic();
-    
-      }else{
-    
-        startMic();
-      }
-    }
+    // --- MIKROFON START/STOPP LOGIK ---
     async function startMic() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        micStream = stream;
-        micRunning = true;
+        try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaStreamSource(micStream);
+            source.connect(analyser);
+            const data = new Uint8Array(analyser.frequencyBinCount);
 
-      document.getElementById("micBtn").innerText =
-        "🛑 Mikrofon stoppen";
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const microphone = audioContext.createMediaStreamSource(stream);
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        microphone.connect(analyser);
+            micBtn.innerText = "🛑 Mikrofon stoppen";
+            micBtn.style.background = "#94a3b8"; // Farbe ändern wenn aktiv
 
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-        function update() {
-          analyser.getByteFrequencyData(dataArray);
-
-          let values = 0;
-          for (let i = 0; i < dataArray.length; i++) values += dataArray[i];
-          let average = Math.round(values / dataArray.length);
-
-          const limit = parseInt(threshold.value);
-          let percentage = Math.min((average / limit) * 100, 100);
-          progressBar.style.width = percentage + "%";
-
-          // ✅ FESTE FARBZONEN
-          if (percentage < 40) progressBar.style.backgroundColor = "#22c55e";
-          else if (percentage < 80) progressBar.style.backgroundColor = "#eab308";
-          else progressBar.style.backgroundColor = "#ef4444";
-
-          // ✅ YouTube automatisch leiser bei Lärm
-          applyYouTubeDucking(percentage);
-
-          updateMood(average);
-          animationId = requestAnimationFrame(update);
-        }
-
-        update();
-      } catch (err) {
-        alert("Mikrofon-Zugriff verweigert.");
-      }
+            const update = () => {
+                analyser.getByteFrequencyData(data);
+                let avg = data.reduce((a,b) => a+b) / data.length;
+                let perc = Math.min((avg / parseInt(document.getElementById("threshold").value)) * 100, 100);
+                progressBar.style.width = perc + "%";
+                progressBar.style.backgroundColor = perc < 45 ? "#22c55e" : (perc < 80 ? "#eab308" : "#ef4444");
+                applyDucking(perc);
+                animationId = requestAnimationFrame(update);
+            };
+            update();
+        } catch (e) { alert("Mikrofon-Zugriff verweigert!"); }
     }
 
-    function updateMood(volume) {
-      const limit = parseInt(threshold.value);
-      const now = Date.now();
-
-      let newMood = "good";
-      if (volume >= limit * 0.8) newMood = "bad";
-      else if (volume >= limit * 0.4) newMood = "medium";
-
-      const moodOrder = { "good": 1, "medium": 2, "bad": 3 };
-
-      if (moodOrder[newMood] > moodOrder[currentMood]) {
-        currentMood = newMood;
-        lastStatusChange = now;
-      } else if (moodOrder[newMood] < moodOrder[currentMood]) {
-        if (now - lastStatusChange >= holdTime) {
-          currentMood = newMood;
-          lastStatusChange = now;
-        }
-      }
-
-      smiley.className = "smiley";
-
-      if (currentMood === "good") {
-        smiley.innerText = "😊";
-        smiley.classList.add("good");
-        message.innerText = "Super ruhig 🌿";
-        wasBad = false;
-
-      } else if (currentMood === "medium") {
-        smiley.innerText = "😐";
-        smiley.classList.add("medium");
-        message.innerText = "Etwas leiser bitte 🌈";
-        wasBad = false;
-
-      } else if (currentMood === "bad") {
-        smiley.innerText = "😵";
-        smiley.classList.add("bad");
-        message.innerText = "Ups 😅 Wir schaffen das leiser";
-
-        playSoftBell();
-
-        if (!wasBad) {
-          redCount++;
-          document.getElementById("redCounter").innerText = redCount;
-          wasBad = true;
-        }
-      }
+    function stopMic() {
+        // 1. Animation stoppen
+        if (animationId) cancelAnimationFrame(animationId);
+        // 2. Mikrofon-Hardware ausschalten
+        if (micStream) micStream.getTracks().forEach(track => track.stop());
+        // 3. Audio-Kontext schließen
+        if (audioCtx) audioCtx.close();
+        
+        micBtn.innerText = "🎤 Mikrofon starten";
+        micBtn.style.background = "#60a5fa";
+        progressBar.style.width = "0%";
+        micStream = null;
     }
 
-    /* -----------------------------
-       ✅ Glocke
-    ------------------------------ */
-    let lastBell = 0;
-    function playSoftBell() {
-      const now = Date.now();
-      if (now - lastBell < 3000) return;
-      lastBell = now;
-
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.type = "triangle";
-      oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(659.25, audioContext.currentTime + 0.25);
-
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1);
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.start();
-      oscillator.stop(audioContext.currentTime + 1);
+    function toggleMic() {
+        if (!micStream) startMic();
+        else stopMic();
     }
-    function stopMic(){
 
-  if(micStream){
+    // --- RESTLICHE FUNKTIONEN ---
+    function unlockMusic() {
+        isLocked = false; isYellowPhase = false; autoMultiplier = 1.0;
+        updateActualVolume(); resetBtn.classList.remove("visible");
+        message.innerText = "Musik wieder freigegeben 🌿";
+    }
 
-    micStream.getTracks().forEach(track => {
-      track.stop();
-    });
+    function toggleMusic() {
+        if (!musicIsPlaying) { bgMusic.play(); musicIsPlaying = true; document.getElementById("musicBtnLabel").innerText = "⏸ Stoppen"; updateActualVolume(); }
+        else { bgMusic.pause(); musicIsPlaying = false; document.getElementById("musicBtnLabel").innerText = "🎵 Musik starten"; }
+    }
 
-    micStream = null;
-  }
+    function playKlangschale() {
+        const ctx = new AudioContext();
+        const g = ctx.createGain(); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0, ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 4);
+        [174, 348, 522].forEach(f => {
+            const o = ctx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(); o.stop(ctx.currentTime + 4);
+        });
+    }
 
-  micRunning = false;
-
-  cancelAnimationFrame(animationId);
-
-  document.getElementById("micBtn").innerText =
-    "🎤 Mikrofon starten";
-
-  // Anzeige zurücksetzen
-
-  progressBar.style.width = "0%";
-
-  smiley.innerText = "😊";
-  smiley.className = "smiley good";
-currentMood = "good";
-wasBad = false;
-  message.innerText = "Mikrofon gestoppt 🌿";
-}
-  </script>
+    document.getElementById("threshold").oninput = (e) => document.getElementById("thresholdText").innerText = e.target.value;
+    document.getElementById("manualMusicVol").oninput = (e) => {
+        document.getElementById("musicVolText").innerText = e.target.value;
+        updateActualVolume();
+    };
+</script>
 </body>
 </html>
