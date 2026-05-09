@@ -84,11 +84,16 @@ button{
         Bitte Passwort eingeben
     </p>
 
+   <form onsubmit="event.preventDefault(); login();">
     <input
         type="password"
         id="password"
         placeholder="Passwort"
     >
+    <button type="submit">
+        Login
+    </button>
+</form>
 
     <button onclick="login()">
         Login
