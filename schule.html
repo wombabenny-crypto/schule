@@ -52,19 +52,34 @@ h1 {
 .button:hover {
     opacity: 0.8;
 }
+.drive-button {
+            display: inline-flex;
+            align-items: center;
+            background-color: #1a73e8; /* Google Blau */
+            color: white;
+            padding: 12px 24px;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .drive-button:hover {
+            background-color: #1557b0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .drive-button svg {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
 </style>
-  <!-- Passwort-Schutz -->
-<script>
-
-if (sessionStorage.getItem("loggedIn") !== "true") {
-
-    sessionStorage.setItem("redirectAfterLogin", window.location.href);
-
-    window.location.href = "index.html";
-}
-
-</script>
-
+ 
 </head>
 <body>
 
@@ -73,6 +88,15 @@ if (sessionStorage.getItem("loggedIn") !== "true") {
 <a href="1.klasse/1.klasse.html" class="button btn1">📚 1. Klasse</a>
 
 <a href="2.klasse/2.klasse.html" class="button btn2">📘 2. Klasse</a>
+
+  <a href="https://drive.google.com/drive/folders/13DAObj09FvW3oPOMm0MLInIc9YyCYrjD" 
+       target="_blank" 
+       class="drive-button">
+        <svg viewBox="0 0 24 24">
+            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+        </svg>
+        Schulmaterial öffnen
+    </a>
 
 <a href="apps/ruheampel.html" class="button btn3">🚦 Ruheampel</a>
 
