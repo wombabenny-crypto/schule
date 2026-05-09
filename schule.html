@@ -17,6 +17,19 @@ if (sessionStorage.getItem("loggedIn") !== "true") {
 
 
 </script>
+  <script>
+    // Sicherheitscheck: Wenn nicht eingeloggt, zurück zum Login
+    if (sessionStorage.getItem("loggedIn") !== "true") {
+        window.location.href = "login.html"; // Name deiner Login-Datei
+    }
+
+    function logout() {
+        // Login-Daten löschen
+        sessionStorage.removeItem("loggedIn");
+        // Zurück zur Login-Seite
+        window.location.href = "login.html";
+    }
+</script>
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -110,5 +123,8 @@ h1 {
 
 <a href="apps/ruheampel.html" class="button btn3">🚦 Ruheampel</a>
 
+  <button onclick="logout()" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 10px; cursor: pointer;">
+    Abmelden 🚪
+</button>
 </body>
 </html>
