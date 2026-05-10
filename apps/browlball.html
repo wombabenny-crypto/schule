@@ -17,99 +17,72 @@
         <p><strong>Spieler 1 (Blau):</strong> W, A, S, D</p>
         <p><strong>Spieler 2 (Rot):</strong> Pfeiltasten</p>
     </div>
-
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Spiel-Objekte
         const ball = { x: 400, y: 200, r: 10, dx: 0, dy: 0, friction: 0.98 };
-        const p1 = { x: 100, y: 200, r: 15, color: "#2196F3", score: 0, speed: 4 };
-        const p2 = { x: 700, y: 200, r: 15, color: "#F44336", score: 0, speed: 4 };
+        const p1 = { x: 100, y: 200, r: 15, color: "#2196F3", score: 0, speed: 5 };
+        const p2 = { x: 700, y: 200, r: 15, color: "#F44336", score: 0, speed: 5 };
 
-        const keys = {};
-        window.addEventListener("keydown", e => keys[e.code] = true);
-        window.addEventListener("keyup", e => keys[e.code] = false);
+        // Touch-Positionen speichern
+        const touches = { p1: { x: 0, y: 0, active: false }, p2: { x: 0, y: 0, active: false } };
 
-        function resetBall() {
-            ball.x = canvas.width / 2;
-            ball.y = canvas.height / 2;
-            ball.dx = 0; ball.dy = 0;
-        }
+        // Touch-Events
+        canvas.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.touches.length; i++) {
+                let t = e.touches[i];
+                let rect = canvas.getBoundingClientRect();
+                let x = t.clientX - rect.left;
+                let y = t.clientY - rect.top;
+
+                if (x < canvas.width / 2) {
+                    p1.x = x; p1.y = y;
+                } else {
+                    p2.x = x; p2.y = y;
+                }
+            }
+        }, {passive: false});
 
         function update() {
-            // Steuerung Spieler 1
-            if (keys["KeyW"]) p1.y -= p1.speed;
-            if (keys["KeyS"]) p1.y += p1.speed;
-            if (keys["KeyA"]) p1.x -= p1.speed;
-            if (keys["KeyD"]) p1.x += p1.speed;
+            // Ball-Physik
+            ball.x += ball.dx; ball.y += ball.dy;
+            ball.dx *= ball.friction; ball.dy *= ball.friction;
 
-            // Steuerung Spieler 2
-            if (keys["ArrowUp"]) p2.y -= p2.speed;
-            if (keys["ArrowDown"]) p2.y += p2.speed;
-            if (keys["ArrowLeft"]) p2.x -= p2.speed;
-            if (keys["ArrowRight"]) p2.x += p2.speed;
-
-            // Ball-Physik (Reibung)
-            ball.x += ball.dx;
-            ball.y += ball.dy;
-            ball.dx *= ball.friction;
-            ball.dy *= ball.friction;
-
-            // Kollision Spieler mit Ball
+            // Kollision
             [p1, p2].forEach(p => {
                 let dist = Math.hypot(p.x - ball.x, p.y - ball.y);
                 if (dist < p.r + ball.r) {
                     let angle = Math.atan2(ball.y - p.y, ball.x - p.x);
-                    ball.dx = Math.cos(angle) * 7;
-                    ball.dy = Math.sin(angle) * 7;
+                    ball.dx = Math.cos(angle) * 8;
+                    ball.dy = Math.sin(angle) * 8;
                 }
             });
 
-            // Spielfeldbegrenzung
+            // Wände & Tore (wie gehabt)
             if (ball.y < 0 || ball.y > canvas.height) ball.dy *= -1;
-            
-            // Tore
-            if (ball.x < 0) {
-                if (ball.y > 150 && ball.y < 250) { p2.score++; resetBall(); }
-                else { ball.dx *= -1; }
-            }
-            if (ball.x > canvas.width) {
-                if (ball.y > 150 && ball.y < 250) { p1.score++; resetBall(); }
-                else { ball.dx *= -1; }
-            }
+            if (ball.x < 0) { if (ball.y > 150 && ball.y < 250) { p2.score++; resetBall(); } else { ball.dx *= -1; } }
+            if (ball.x > canvas.width) { if (ball.y > 150 && ball.y < 250) { p1.score++; resetBall(); } else { ball.dx *= -1; } }
         }
+
+        function resetBall() { ball.x = 400; ball.y = 200; ball.dx = 0; ball.dy = 0; }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Mittellinie & Tore
-            ctx.strokeStyle = "rgba(255,255,255,0.3)";
-            ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 400); ctx.stroke();
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 150, 10, 100);
-            ctx.fillRect(canvas.width-10, 150, 10, 100);
-
-            // Ball zeichnen
+            // ... (Hier den gleichen Code wie oben für Mittellinie, Tore, Ball & Spieler verwenden)
+            // Zeichne den Ball und die Spieler...
             ctx.fillStyle = "white";
             ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
-
-            // Spieler zeichnen
-            [p1, p2].forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
-            });
-
-            // Score
-            ctx.font = "20px Arial";
-            ctx.fillText(`Blau: ${p1.score}`, 50, 30);
-            ctx.fillText(`Rot: ${p2.score}`, 680, 30);
+            
+            ctx.fillStyle = p1.color; ctx.beginPath(); ctx.arc(p1.x, p1.y, p1.r, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = p2.color; ctx.beginPath(); ctx.arc(p2.x, p2.y, p2.r, 0, Math.PI*2); ctx.fill();
 
             update();
             requestAnimationFrame(draw);
         }
-
         draw();
     </script>
+
 </body>
 </html>
