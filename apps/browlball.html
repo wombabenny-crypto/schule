@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Schul-Brawlball</title>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; background: #222; color: white; font-family: sans-serif; }
+        canvas { border: 5px solid #fff; background: #2e7d32; cursor: none; }
+        .controls { margin-top: 10px; display: flex; gap: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Brawlball JS</h1>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    
+    <div class="controls">
+        <p><strong>Spieler 1 (Blau):</strong> W, A, S, D</p>
+        <p><strong>Spieler 2 (Rot):</strong> Pfeiltasten</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Spiel-Objekte
+        const ball = { x: 400, y: 200, r: 10, dx: 0, dy: 0, friction: 0.98 };
+        const p1 = { x: 100, y: 200, r: 15, color: "#2196F3", score: 0, speed: 4 };
+        const p2 = { x: 700, y: 200, r: 15, color: "#F44336", score: 0, speed: 4 };
+
+        const keys = {};
+        window.addEventListener("keydown", e => keys[e.code] = true);
+        window.addEventListener("keyup", e => keys[e.code] = false);
+
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.dx = 0; ball.dy = 0;
+        }
+
+        function update() {
+            // Steuerung Spieler 1
+            if (keys["KeyW"]) p1.y -= p1.speed;
+            if (keys["KeyS"]) p1.y += p1.speed;
+            if (keys["KeyA"]) p1.x -= p1.speed;
+            if (keys["KeyD"]) p1.x += p1.speed;
+
+            // Steuerung Spieler 2
+            if (keys["ArrowUp"]) p2.y -= p2.speed;
+            if (keys["ArrowDown"]) p2.y += p2.speed;
+            if (keys["ArrowLeft"]) p2.x -= p2.speed;
+            if (keys["ArrowRight"]) p2.x += p2.speed;
+
+            // Ball-Physik (Reibung)
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            ball.dx *= ball.friction;
+            ball.dy *= ball.friction;
+
+            // Kollision Spieler mit Ball
+            [p1, p2].forEach(p => {
+                let dist = Math.hypot(p.x - ball.x, p.y - ball.y);
+                if (dist < p.r + ball.r) {
+                    let angle = Math.atan2(ball.y - p.y, ball.x - p.x);
+                    ball.dx = Math.cos(angle) * 7;
+                    ball.dy = Math.sin(angle) * 7;
+                }
+            });
+
+            // Spielfeldbegrenzung
+            if (ball.y < 0 || ball.y > canvas.height) ball.dy *= -1;
+            
+            // Tore
+            if (ball.x < 0) {
+                if (ball.y > 150 && ball.y < 250) { p2.score++; resetBall(); }
+                else { ball.dx *= -1; }
+            }
+            if (ball.x > canvas.width) {
+                if (ball.y > 150 && ball.y < 250) { p1.score++; resetBall(); }
+                else { ball.dx *= -1; }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Mittellinie & Tore
+            ctx.strokeStyle = "rgba(255,255,255,0.3)";
+            ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 400); ctx.stroke();
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 150, 10, 100);
+            ctx.fillRect(canvas.width-10, 150, 10, 100);
+
+            // Ball zeichnen
+            ctx.fillStyle = "white";
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+
+            // Spieler zeichnen
+            [p1, p2].forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Score
+            ctx.font = "20px Arial";
+            ctx.fillText(`Blau: ${p1.score}`, 50, 30);
+            ctx.fillText(`Rot: ${p2.score}`, 680, 30);
+
+            update();
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>
