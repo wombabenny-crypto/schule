@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirchenraum Quiz - Korrigierte Version</title>
+   <!-- Passwort-Schutz -->
+
+    <script>
+
+  if (sessionStorage.getItem("loggedIn") !== "true") {
+
+      sessionStorage.setItem("redirectAfterLogin", window.location.href);
+
+      window.location.href = "../index.html";
+
+  }
+
+</script>
+ <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            touch-action: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .main-container {
+            display: flex;
+            gap: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 800px; 
+            height: 480px; 
+            background-color: #ddd;
+            border-radius: 10px;
+            background-image: url('kirche_bild.jpg'); /* <--- ÄNDERE DIES AUF DEINEN BILDNAMEN */
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            border: 3px solid var(--primary);
+            overflow: hidden;
+        }
+
+        .drop-zone {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 3px dashed var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .drop-zone.hover {
+            background: rgba(52, 152, 219, 0.5);
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        .drop-zone.correct {
+            background: var(--success);
+            border: none;
+            color: white;
+            box-shadow: 0 0 15px var(--success);
+        }
+
+        .terms-panel {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            min-width: 220px;
+        }
+
+        .draggable-item {
+            padding: 12px;
+            background-color: var(--accent);
+            color: white;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, opacity 0.2s;
+            user-select: none;
+        }
+
+        .draggable-item:active { cursor: grabbing; }
+        .draggable-item.dragging { opacity: 0.5; transform: scale(0.95); }
+        .draggable-item.hidden { visibility: hidden; pointer-events: none; }
+
+        #reset-btn {
+            margin-top: 25px;
+            padding: 10px 25px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        #reset-btn:hover { background-color: #34495e; }
+
+       /* --- FINALE KORREKTUREN NACH DEINEM FEEDBACK --- */
+        #zone-1 { top: 62%; left: 10%; }  /* Sakristei */
+        #zone-2 { top: 85%; left: 55%; }  /* Weihwasserbecken - Weiter unten & etwas nach links gerückt */
+        #zone-3 { top: 25%; left: 90%; }  /* Orgel */
+        #zone-4 { top: 61%; left: 50%; }  /* Altar */
+        #zone-5 { top: 49%; left: 51%; }  /* Tabernakel */
+        #zone-6 { top: 35%; left: 51%; }  /* Ewiges Licht */
+        #zone-7 { top: 68%; left: 33%; }  /* Taufbecken - Etwas niedriger gesetzt */
+        #zone-8 { top: 50%; left: 41%; }  /* Osterkerze */
+        #zone-9 { top: 68%; left: 63%; }  /* Ambo */
+        #zone-10 { top: 38%; left: 70%; } /* Kanzel */
+
+.home-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 10px 18px;
+    border-radius: 15px;
+    text-decoration: none;
+    color: #4b5563;
+    font-weight: bold;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: 0.2s;
+    border: 2px solid #e2e8f0;
+    z-index: 1000; /* Immer im Vordergrund */
+}
+
+.home-button:hover {
+    background: #f8fafc;
+    transform: scale(1.05);
+}
+
+/* Optimierung für Handys */
+@media (max-width: 600px) {
+    .home-button {
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+    </style>
+</head>
+<body>
+<a href="../schule.html" class="home-button">🏠 Home</a>
+    <div class="header">
+        <h1>Kirchenraum-Quiz: Interaktiv</h1>
+        <p>Ziehe die Begriffe auf die richtigen Symbole im Bild.</p>
+    </div>
+
+    <div class="main-container">
+        <div class="image-wrapper" id="target-map">
+            <div id="zone-1" class="drop-zone" data-target="Sakristei">?</div>
+            <div id="zone-2" class="drop-zone" data-target="Weihwasserbecken">?</div>
+            <div id="zone-3" class="drop-zone" data-target="Orgel">?</div>
+            <div id="zone-4" class="drop-zone" data-target="Altar">?</div>
+            <div id="zone-5" class="drop-zone" data-target="Tabernakel">?</div>
+            <div id="zone-6" class="drop-zone" data-target="Ewiges Licht">?</div>
+            <div id="zone-7" class="drop-zone" data-target="Taufbecken">?</div>
+            <div id="zone-8" class="drop-zone" data-target="Osterkerze">?</div>
+            <div id="zone-9" class="drop-zone" data-target="Ambo">?</div>
+            <div id="zone-10" class="drop-zone" data-target="Kanzel">?</div>
+        </div>
+
+        <div class="terms-panel" id="source-terms">
+            <div class="draggable-item" draggable="true" id="item-4">Altar</div>
+            <div class="draggable-item" draggable="true" id="item-9">Ambo</div>
+            <div class="draggable-item" draggable="true" id="item-6">Ewiges Licht</div>
+            <div class="draggable-item" draggable="true" id="item-10">Kanzel</div>
+            <div class="draggable-item" draggable="true" id="item-3">Orgel</div>
+            <div class="draggable-item" draggable="true" id="item-8">Osterkerze</div>
+            <div class="draggable-item" draggable="true" id="item-1">Sakristei</div>
+            <div class="draggable-item" draggable="true" id="item-5">Tabernakel</div>
+            <div class="draggable-item" draggable="true" id="item-7">Taufbecken</div>
+            <div class="draggable-item" draggable="true" id="item-2">Weihwasserbecken</div>
+        </div>
+    </div>
+
+    <button id="reset-btn" onclick="location.reload()">Spiel zurücksetzen</button>
+
+    <script>
+        // ... (JavaScript bleibt unverändert, nur die Koordinaten oben wurden angepasst) ...
+        const draggables = document.querySelectorAll('.draggable-item');
+        const zones = document.querySelectorAll('.drop-zone');
+
+        draggables.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                item.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', item.innerText);
+                e.dataTransfer.setData('source-id', item.id);
+            });
+            item.addEventListener('dragend', () => { item.classList.remove('dragging'); });
+        });
+
+        zones.forEach(zone => {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.classList.add('hover');
+            });
+            zone.addEventListener('dragleave', () => { zone.classList.remove('hover'); });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.classList.remove('hover');
+                
+                const droppedTerm = e.dataTransfer.getData('text/plain');
+                const sourceId = e.dataTransfer.getData('source-id');
+                const targetTerm = zone.getAttribute('data-target');
+
+                if (droppedTerm === targetTerm) {
+                    zone.classList.add('correct');
+                    zone.innerText = '✓';
+                    document.getElementById(sourceId).classList.add('hidden');
+                } else {
+                    zone.style.backgroundColor = '#e74c3c';
+                    setTimeout(() => {
+                        zone.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+                    }, 600);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
