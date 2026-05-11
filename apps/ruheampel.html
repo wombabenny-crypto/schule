@@ -1,235 +1,231 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Klassenruhe - Smart Fix 🌈</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(180deg, #dff6ff, #fef6e4); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-.container { width: 100%; max-width: 500px; background: white; border-radius: 35px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-.smiley { width: 160px; height: 160px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 6rem; transition: 0.3s; }
-.good { background: #bbf7d0; } .medium { background: #fde68a; } .bad { background: #fecaca; }
-.progress-container { width: 100%; height: 25px; background: #e2e8f0; border-radius: 15px; margin-bottom: 20px; overflow: hidden; }
-.progress-bar { height: 100%; width: 0%; background: #22c55e; transition: width 0.1s; }
-.controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; text-align: left; }
-button { width: 100%; padding: 14px; border: none; border-radius: 18px; margin-top: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
-.start-btn { background: #60a5fa; color: white; }
-.music-btn { background: #c4b5fd; color: #312e81; }
-.reset-btn { background: #ef4444; color: white; display: none; }
-.reset-btn.visible { display: block; animation: pulse 2s infinite; }
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-.home-button { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 15px; text-decoration: none; color: #4b5563; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #e2e8f0; z-index: 1000; }
-</style>
-<script>
-if (sessionStorage.getItem("loggedIn") !== "true") {
-sessionStorage.setItem("redirectAfterLogin", window.location.href);
-window.location.href = "../index.html";
-}
-</script> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+    <title>Kirchenraum Quiz - Feedback Edition</title>
+    
+    <!-- Bild-Beschleuniger -->
+    <link rel="preload" as="image" href="kirche_bild.jpg">
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+        }
+
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto; 
+            min-height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            justify-content: center;
+        }
+
+        .image-wrapper {
+            position: relative;
+            width: 800px; 
+            height: 480px;
+            background-image: url('kirche_bild.jpg');
+            background-size: 100% 100%;
+            border: 3px solid var(--primary);
+            border-radius: 10px;
+            flex-shrink: 0;
+            touch-action: pan-y; 
+        }
+
+        .drop-zone {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 3px dashed var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        /* Effekt wenn richtig */
+        .drop-zone.correct { 
+            background: var(--success) !important; 
+            border: none; 
+            color: white; 
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .terms-panel {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            min-width: 220px;
+        }
+
+        .draggable-item {
+            padding: 15px 12px;
+            background-color: var(--accent);
+            color: white;
+            border-radius: 8px;
+            cursor: grab;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            user-select: none;
+            touch-action: manipulation; 
+        }
+
+        .draggable-item.selected { 
+            background-color: var(--primary); 
+            transform: scale(1.05); 
+        }
+
+        /* Wort leuchtet grün auf bevor es verschwindet */
+        .draggable-item.correct-flash {
+            background-color: var(--success) !important;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--success);
+        }
+
+        .draggable-item.hidden { 
+            opacity: 0;
+            transform: scale(0.5);
+            pointer-events: none; 
+        }
+
+        /* Koordinaten */
+        #zone-1 { top: 62%; left: 10%; } #zone-2 { top: 85%; left: 55%; }
+        #zone-3 { top: 25%; left: 90%; } #zone-4 { top: 61%; left: 50%; }
+        #zone-5 { top: 49%; left: 51%; } #zone-6 { top: 35%; left: 51%; }
+        #zone-7 { top: 68%; left: 33%; } #zone-8 { top: 50%; left: 41%; }
+        #zone-9 { top: 68%; left: 63%; } #zone-10 { top: 38%; left: 70%; }
+
+        @media (max-width: 1000px) {
+            .main-container { flex-direction: column; width: 100%; }
+            .image-wrapper { width: 100%; height: auto; aspect-ratio: 800 / 480; }
+            .terms-panel { grid-template-columns: 1fr 1fr; width: 100%; }
+        }
+    </style>
 </head>
 <body>
 
-<a href="../schule.html" class="home-button">🏠 Home</a>
-
-<div class="container">
-<div id="smiley" class="smiley good">😊</div>
-<div id="message" style="margin-bottom: 20px; font-weight: 500; height: 1.5em;">Bereit? 🌿</div>
-
-<div class="progress-container">
-<div id="progressBar" class="progress-bar"></div>
+<div style="text-align: center; margin-bottom: 20px;">
+    <h1>Kirchenraum-Quiz</h1>
+    <p>Ordne die Begriffe den richtigen Stellen zu.</p>
 </div>
 
-<div class="controls-grid">
-<div>
-<label style="font-size: 0.75rem; font-weight: bold;">Limit: <span id="thresholdText">55</span></label>
-<input type="range" min="20" max="120" value="55" id="threshold">
-</div>
-<div>
-<label style="font-size: 0.75rem; font-weight: bold;">Musik: <span id="musicVolText">60</span>%</label>
-<input type="range" min="0" max="100" value="60" id="manualMusicVol">
-</div>
+<div class="main-container">
+    <div class="image-wrapper" id="target-map">
+        <div id="zone-1" class="drop-zone" data-target="Sakristei">?</div>
+        <div id="zone-2" class="drop-zone" data-target="Weihwasserbecken">?</div>
+        <div id="zone-3" class="drop-zone" data-target="Orgel">?</div>
+        <div id="zone-4" class="drop-zone" data-target="Altar">?</div>
+        <div id="zone-5" class="drop-zone" data-target="Tabernakel">?</div>
+        <div id="zone-6" class="drop-zone" data-target="Ewiges Licht">?</div>
+        <div id="zone-7" class="drop-zone" data-target="Taufbecken">?</div>
+        <div id="zone-8" class="drop-zone" data-target="Osterkerze">?</div>
+        <div id="zone-9" class="drop-zone" data-target="Ambo">?</div>
+        <div id="zone-10" class="drop-zone" data-target="Kanzel">?</div>
+    </div>
+
+    <div class="terms-panel" id="source-terms">
+        <div class="draggable-item" draggable="true" id="item-4">Altar</div>
+        <div class="draggable-item" draggable="true" id="item-9">Ambo</div>
+        <div class="draggable-item" draggable="true" id="item-6">Ewiges Licht</div>
+        <div class="draggable-item" draggable="true" id="item-10">Kanzel</div>
+        <div class="draggable-item" draggable="true" id="item-3">Orgel</div>
+        <div class="draggable-item" draggable="true" id="item-8">Osterkerze</div>
+        <div class="draggable-item" draggable="true" id="item-1">Sakristei</div>
+        <div class="draggable-item" draggable="true" id="item-5">Tabernakel</div>
+        <div class="draggable-item" draggable="true" id="item-7">Taufbecken</div>
+        <div class="draggable-item" draggable="true" id="item-2">Weihwasserbecken</div>
+    </div>
 </div>
 
-<button class="start-btn" onclick="toggleMic()" id="micBtn">🎤 Mikrofon starten</button>
-<button class="music-btn" onclick="toggleMusic()" id="musicBtnLabel">🎵 Musik starten</button>
-<button class="reset-btn" id="resetBtn" onclick="unlockMusic()">🔴 Zu laut! Musik freigeben?</button>
-
-<div style="margin-top: 20px; font-size: 0.9rem; color: #64748b;">🔴 Lärm-Alarme: <span id="redCounter">0</span></div>
-</div>
-
-<audio id="bgMusic" loop preload="auto">
-    <source src="https://wombabenny-crypto.github.io/schule/apps/entspannt.mp3" type="audio/mpeg">
-</audio>
+<button onclick="location.reload()" style="margin-top:20px; padding:12px 30px; border-radius:20px; border:none; background:var(--primary); color:white; font-weight:bold; cursor:pointer;">Reset</button>
 
 <script>
-const bgMusic = document.getElementById("bgMusic");
-const resetBtn = document.getElementById("resetBtn");
-const message = document.getElementById("message");
-const smiley = document.getElementById("smiley");
-const progressBar = document.getElementById("progressBar");
-const micBtn = document.getElementById("micBtn");
+    let selectedItem = null;
 
-let autoMultiplier = 1.0;
-let isLocked = false;
-let isYellowPhase = false;
-let musicIsPlaying = false;
-let redCount = 0;
-let wasBad = false;
+    function handleSelection(item) {
+        document.querySelectorAll('.draggable-item').forEach(i => i.classList.remove('selected'));
+        selectedItem = item;
+        item.classList.add('selected');
+    }
 
-let micStream = null;
-let audioCtx = null;
-let animationId = null;
+    document.querySelectorAll('.draggable-item').forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text', item.innerText);
+            e.dataTransfer.setData('id', item.id);
+        });
+        item.addEventListener('click', () => handleSelection(item));
+    });
 
-function updateActualVolume() {
-if (isLocked) {
-bgMusic.volume = 0;
-} else {
-const baseVol = (document.getElementById("manualMusicVol").value / 100);
-bgMusic.volume = Math.max(0, Math.min(1, baseVol * autoMultiplier));
-}
-}
+    document.querySelectorAll('.drop-zone').forEach(zone => {
+        zone.addEventListener('dragover', (e) => e.preventDefault());
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            checkResult(e.dataTransfer.getData('text'), e.dataTransfer.getData('id'), zone);
+        });
+        zone.addEventListener('click', () => {
+            if (selectedItem) checkResult(selectedItem.innerText, selectedItem.id, zone);
+        });
+    });
 
-function applyDucking(perc) {
-if (isLocked) return;
-
-if (perc >= 80) {
-// ROTER ALARM
-if (!wasBad) { 
-redCount++; 
-document.getElementById("redCounter").innerText = redCount; 
-wasBad = true; 
-playKlangschale(); 
-}
-
-if (musicIsPlaying) {
-// Mit Musik: Manuelles Reset nötig
-isLocked = true; 
-autoMultiplier = 0; 
-updateActualVolume();
-resetBtn.classList.add("visible");
-smiley.className = "smiley bad"; 
-smiley.innerText = "😵";
-message.innerText = "MUSIK GESPERRT! 🛑";
-} else {
-// Ohne Musik: Automatischer Reset nach 4 Sek
-isLocked = true;
-smiley.className = "smiley bad"; 
-smiley.innerText = "😵";
-message.innerText = "Zu laut! 🛑 (Auto-Reset...)";
-
-setTimeout(() => {
-unlockMusic();
-wasBad = false;
-}, 4000);
-}
-
-} else if (perc >= 45) {
-// GELBE PHASE
-autoMultiplier = 0.3; 
-updateActualVolume();
-smiley.className = "smiley medium"; 
-smiley.innerText = "😐";
-message.innerText = "Vorsicht, leiser werden... ⚠️";
-isYellowPhase = true;
-clearTimeout(window.yellowTimer);
-window.yellowTimer = setTimeout(() => { isYellowPhase = false; }, 4000);
-} else if (!isYellowPhase && !isLocked) {
-// GRÜNE PHASE
-autoMultiplier = 1.0; 
-updateActualVolume();
-smiley.className = "smiley good"; 
-smiley.innerText = "😊";
-message.innerText = "Wunderbare Ruhe 🌿";
-wasBad = false;
-}
-}
-
-async function startMic() {
-try {
-micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const analyser = audioCtx.createAnalyser();
-const source = audioCtx.createMediaStreamSource(micStream);
-source.connect(analyser);
-const data = new Uint8Array(analyser.frequencyBinCount);
-
-micBtn.innerText = "🛑 Mikrofon stoppen";
-micBtn.style.background = "#94a3b8";
-
-const update = () => {
-analyser.getByteFrequencyData(data);
-let avg = data.reduce((a,b) => a+b) / data.length;
-let threshold = parseInt(document.getElementById("threshold").value);
-let perc = Math.min((avg / threshold) * 100, 100);
-
-progressBar.style.width = perc + "%";
-progressBar.style.backgroundColor = perc < 45 ? "#22c55e" : (perc < 80 ? "#eab308" : "#ef4444");
-
-applyDucking(perc);
-animationId = requestAnimationFrame(update);
-};
-update();
-} catch (e) { alert("Mikrofon-Zugriff verweigert!"); }
-}
-
-function stopMic() {
-if (animationId) cancelAnimationFrame(animationId);
-if (micStream) micStream.getTracks().forEach(track => track.stop());
-if (audioCtx) audioCtx.close();
-micBtn.innerText = "🎤 Mikrofon starten";
-micBtn.style.background = "#60a5fa";
-progressBar.style.width = "0%";
-micStream = null;
-}
-
-function toggleMic() {
-if (!micStream) startMic();
-else stopMic();
-}
-
-function unlockMusic() {
-isLocked = false; 
-isYellowPhase = false; 
-autoMultiplier = 1.0;
-updateActualVolume(); 
-resetBtn.classList.remove("visible");
-smiley.className = "smiley good";
-smiley.innerText = "😊";
-message.innerText = "Bereit für Ruhe 🌿";
-}
-
-function toggleMusic() {
-if (!musicIsPlaying) { 
-bgMusic.play(); 
-musicIsPlaying = true; 
-document.getElementById("musicBtnLabel").innerText = "⏸ Stoppen"; 
-updateActualVolume(); 
-} else { 
-bgMusic.pause(); 
-musicIsPlaying = false; 
-document.getElementById("musicBtnLabel").innerText = "🎵 Musik starten"; 
-}
-}
-
-function playKlangschale() {
-try {
-const ctx = new (window.AudioContext || window.webkitAudioContext)();
-const g = ctx.createGain(); g.connect(ctx.destination);
-g.gain.setValueAtTime(0, ctx.currentTime);
-g.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
-g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3);
-[174, 348].forEach(f => {
-const o = ctx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(); o.stop(ctx.currentTime + 3);
-});
-} catch(e) {}
-}
-
-document.getElementById("threshold").oninput = (e) => document.getElementById("thresholdText").innerText = e.target.value;
-document.getElementById("manualMusicVol").oninput = (e) => {
-document.getElementById("musicVolText").innerText = e.target.value;
-updateActualVolume();
-};
+    function checkResult(term, id, zone) {
+        if (term === zone.getAttribute('data-target')) {
+            const el = document.getElementById(id);
+            
+            // 1. Zone wird grün
+            zone.classList.add('correct');
+            zone.innerText = '✓';
+            
+            // 2. Wort leuchtet grün auf
+            if(el) {
+                el.classList.add('correct-flash');
+                setTimeout(() => {
+                    el.classList.add('hidden');
+                }, 400); // Verschwindet nach kurzem Leuchten
+            }
+            
+            selectedItem = null;
+        } else {
+            zone.style.backgroundColor = '#e74c3c';
+            zone.innerText = '✗';
+            setTimeout(() => { 
+                if(!zone.classList.contains('correct')) {
+                    zone.style.backgroundColor = 'rgba(255, 255, 255, 0.7)'; 
+                    zone.innerText = '?';
+                }
+            }, 600);
+        }
+    }
 </script>
 </body>
 </html>
