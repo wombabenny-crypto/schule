@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Klassenruhe - Fix 🌈</title>
+    <title>Klassenruhe - Smart Fix 🌈</title>
     <style>
-        /* (Styles bleiben wie gehabt, hier gekürzt für die Übersicht) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(180deg, #dff6ff, #fef6e4); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .container { width: 100%; max-width: 500px; background: white; border-radius: 35px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
@@ -14,54 +13,25 @@
         .progress-container { width: 100%; height: 25px; background: #e2e8f0; border-radius: 15px; margin-bottom: 20px; overflow: hidden; }
         .progress-bar { height: 100%; width: 0%; background: #22c55e; transition: width 0.1s; }
         .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; text-align: left; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 18px; margin-top: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 18px; margin-top: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .start-btn { background: #60a5fa; color: white; }
         .music-btn { background: #c4b5fd; color: #312e81; }
         .reset-btn { background: #ef4444; color: white; display: none; }
         .reset-btn.visible { display: block; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-.home-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: white;
-    padding: 10px 18px;
-    border-radius: 15px;
-    text-decoration: none;
-    color: #4b5563;
-    font-weight: bold;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: 0.2s;
-    border: 2px solid #e2e8f0;
-    z-index: 1000; /* Sorgt dafür, dass der Button immer im Vordergrund ist */
-}
-
-.home-button:hover {
-    background: #f8fafc;
-    transform: scale(1.05);
-}
-
-/* Auf kleinen Bildschirmen (Handys) etwas kleiner machen */
-@media (max-width: 600px) {
-    .home-button {
-        top: 10px;
-        right: 10px;
-        padding: 8px 12px;
-        font-size: 0.9rem;
-    }
-}    
-</style>
-    <!-- Passwort-Schutz -->
+        .home-button { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 15px; text-decoration: none; color: #4b5563; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #e2e8f0; z-index: 1000; }
+    </style>
     <script>
-  if (sessionStorage.getItem("loggedIn") !== "true") {
-      sessionStorage.setItem("redirectAfterLogin", window.location.href);
-      window.location.href = "../index.html";
-  }
-</script>
+        if (sessionStorage.getItem("loggedIn") !== "true") {
+            sessionStorage.setItem("redirectAfterLogin", window.location.href);
+            window.location.href = "../index.html";
+        }
+    </script>
 </head>
 <body>
+
 <a href="../schule.html" class="home-button">🏠 Home</a>
+
 <div class="container">
     <div id="smiley" class="smiley good">😊</div>
     <div id="message" style="margin-bottom: 20px; font-weight: 500; height: 1.5em;">Bereit? 🌿</div>
@@ -89,7 +59,7 @@
 </div>
 
 <audio id="bgMusic" loop preload="auto">
-    <source src="https://wombabenny-crypto.github.io/schule/apps/entspannt.mp3" type="audio/mpeg">
+    <source src="https://wombabenny-crypto.github.io/schule/entspannt.mp3" type="audio/mpeg">
 </audio>
 
 <script>
@@ -107,7 +77,6 @@
     let redCount = 0;
     let wasBad = false;
 
-    // Mikrofon-Variablen für den Stopp-Fix
     let micStream = null;
     let audioCtx = null;
     let animationId = null;
@@ -123,28 +92,59 @@
 
     function applyDucking(perc) {
         if (isLocked) return;
+
         if (perc >= 80) {
-            isLocked = true; autoMultiplier = 0; updateActualVolume();
-            resetBtn.classList.add("visible");
-            smiley.className = "smiley bad"; smiley.innerText = "😵";
-            message.innerText = "MUSIK GESPERRT! 🛑";
-            if (!wasBad) { redCount++; document.getElementById("redCounter").innerText = redCount; wasBad = true; playKlangschale(); }
+            // ROTER ALARM
+            if (!wasBad) { 
+                redCount++; 
+                document.getElementById("redCounter").innerText = redCount; 
+                wasBad = true; 
+                playKlangschale(); 
+            }
+
+            if (musicIsPlaying) {
+                // Mit Musik: Manuelles Reset nötig
+                isLocked = true; 
+                autoMultiplier = 0; 
+                updateActualVolume();
+                resetBtn.classList.add("visible");
+                smiley.className = "smiley bad"; 
+                smiley.innerText = "😵";
+                message.innerText = "MUSIK GESPERRT! 🛑";
+            } else {
+                // Ohne Musik: Automatischer Reset nach 4 Sek
+                isLocked = true;
+                smiley.className = "smiley bad"; 
+                smiley.innerText = "😵";
+                message.innerText = "Zu laut! 🛑 (Auto-Reset...)";
+                
+                setTimeout(() => {
+                    unlockMusic();
+                    wasBad = false;
+                }, 4000);
+            }
+
         } else if (perc >= 45) {
-            autoMultiplier = 0.3; updateActualVolume();
-            smiley.className = "smiley medium"; smiley.innerText = "😐";
+            // GELBE PHASE
+            autoMultiplier = 0.3; 
+            updateActualVolume();
+            smiley.className = "smiley medium"; 
+            smiley.innerText = "😐";
             message.innerText = "Vorsicht, leiser werden... ⚠️";
             isYellowPhase = true;
             clearTimeout(window.yellowTimer);
             window.yellowTimer = setTimeout(() => { isYellowPhase = false; }, 4000);
-        } else if (!isYellowPhase) {
-            autoMultiplier = 1.0; updateActualVolume();
-            smiley.className = "smiley good"; smiley.innerText = "😊";
+        } else if (!isYellowPhase && !isLocked) {
+            // GRÜNE PHASE
+            autoMultiplier = 1.0; 
+            updateActualVolume();
+            smiley.className = "smiley good"; 
+            smiley.innerText = "😊";
             message.innerText = "Wunderbare Ruhe 🌿";
             wasBad = false;
         }
     }
 
-    // --- MIKROFON START/STOPP LOGIK ---
     async function startMic() {
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -155,14 +155,17 @@
             const data = new Uint8Array(analyser.frequencyBinCount);
 
             micBtn.innerText = "🛑 Mikrofon stoppen";
-            micBtn.style.background = "#94a3b8"; // Farbe ändern wenn aktiv
+            micBtn.style.background = "#94a3b8";
 
             const update = () => {
                 analyser.getByteFrequencyData(data);
                 let avg = data.reduce((a,b) => a+b) / data.length;
-                let perc = Math.min((avg / parseInt(document.getElementById("threshold").value)) * 100, 100);
+                let threshold = parseInt(document.getElementById("threshold").value);
+                let perc = Math.min((avg / threshold) * 100, 100);
+                
                 progressBar.style.width = perc + "%";
                 progressBar.style.backgroundColor = perc < 45 ? "#22c55e" : (perc < 80 ? "#eab308" : "#ef4444");
+                
                 applyDucking(perc);
                 animationId = requestAnimationFrame(update);
             };
@@ -171,13 +174,9 @@
     }
 
     function stopMic() {
-        // 1. Animation stoppen
         if (animationId) cancelAnimationFrame(animationId);
-        // 2. Mikrofon-Hardware ausschalten
         if (micStream) micStream.getTracks().forEach(track => track.stop());
-        // 3. Audio-Kontext schließen
         if (audioCtx) audioCtx.close();
-        
         micBtn.innerText = "🎤 Mikrofon starten";
         micBtn.style.background = "#60a5fa";
         progressBar.style.width = "0%";
@@ -189,27 +188,41 @@
         else stopMic();
     }
 
-    // --- RESTLICHE FUNKTIONEN ---
     function unlockMusic() {
-        isLocked = false; isYellowPhase = false; autoMultiplier = 1.0;
-        updateActualVolume(); resetBtn.classList.remove("visible");
-        message.innerText = "Musik wieder freigegeben 🌿";
+        isLocked = false; 
+        isYellowPhase = false; 
+        autoMultiplier = 1.0;
+        updateActualVolume(); 
+        resetBtn.classList.remove("visible");
+        smiley.className = "smiley good";
+        smiley.innerText = "😊";
+        message.innerText = "Bereit für Ruhe 🌿";
     }
 
     function toggleMusic() {
-        if (!musicIsPlaying) { bgMusic.play(); musicIsPlaying = true; document.getElementById("musicBtnLabel").innerText = "⏸ Stoppen"; updateActualVolume(); }
-        else { bgMusic.pause(); musicIsPlaying = false; document.getElementById("musicBtnLabel").innerText = "🎵 Musik starten"; }
+        if (!musicIsPlaying) { 
+            bgMusic.play(); 
+            musicIsPlaying = true; 
+            document.getElementById("musicBtnLabel").innerText = "⏸ Stoppen"; 
+            updateActualVolume(); 
+        } else { 
+            bgMusic.pause(); 
+            musicIsPlaying = false; 
+            document.getElementById("musicBtnLabel").innerText = "🎵 Musik starten"; 
+        }
     }
 
     function playKlangschale() {
-        const ctx = new AudioContext();
-        const g = ctx.createGain(); g.connect(ctx.destination);
-        g.gain.setValueAtTime(0, ctx.currentTime);
-        g.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
-        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 4);
-        [174, 348, 522].forEach(f => {
-            const o = ctx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(); o.stop(ctx.currentTime + 4);
-        });
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const g = ctx.createGain(); g.connect(ctx.destination);
+            g.gain.setValueAtTime(0, ctx.currentTime);
+            g.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 3);
+            [174, 348].forEach(f => {
+                const o = ctx.createOscillator(); o.frequency.value = f; o.connect(g); o.start(); o.stop(ctx.currentTime + 3);
+            });
+        } catch(e) {}
     }
 
     document.getElementById("threshold").oninput = (e) => document.getElementById("thresholdText").innerText = e.target.value;
