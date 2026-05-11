@@ -35,7 +35,6 @@
 
         .home-button:hover { background: #f8fafc; transform: scale(1.05); }
 
-        /* Der Haupt-Container, der alles untereinander hält */
         .container { 
             width: 100%; 
             max-width: 900px; 
@@ -45,23 +44,71 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
             text-align: center;
             display: flex;
-            flex-direction: column; /* Sorgt für die Anzeige untereinander */
-            gap: 20px; /* Abstand zwischen den Elementen */
+            flex-direction: column;
+            gap: 20px;
             align-items: center;
         }
 
         .church-img {
             width: 100%;
             max-width: 700px;
+            height: 300px;
+            object-fit: cover;
             border-radius: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: #eee;
         }
 
-        .folder-container {
+        .galerie-titel {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #2c3e50;
+            margin-top: 20px;
+            border-bottom: 2px solid #2ecc71;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .gallery-container {
             width: 100%;
-            border: 3px solid #e2e8f0;
-            border-radius: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .file-card {
+            background: white;
+            border-radius: 15px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-decoration: none;
+            color: #333;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #e1e1e1;
+        }
+
+        .file-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-color: #2ecc71; }
+
+        .file-card img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+
+        .file-card p {
+            font-size: 13px;
+            font-weight: 600;
+            margin: 0;
+            width: 100%;
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .big-quiz-link {
@@ -75,13 +122,12 @@
             font-weight: bold;
             font-size: 1.2rem;
             transition: 0.3s;
+            margin-top: 10px;
         }
 
         .big-quiz-link:hover { background: #2980b9; transform: translateY(-2px); }
 
-        @media (max-width: 600px) {
-            .home-button { top: 10px; right: 10px; padding: 8px 12px; font-size: 0.9rem; }
-        }
+        #loading-text-2 { grid-column: 1 / -1; padding: 20px; color: #95a5a6; font-style: italic; }
     </style>
 
     <script>
@@ -98,17 +144,48 @@
     <div class="container">
         <h1>Kirchengegenstände</h1>
         
-        <img src="https://lh3.googleusercontent.com/d/1w32FnqDjxgXEPePHmVwRp8mcG_mMZKn6" 
-             alt="Kirchenraum" class="church-img">
+        <img src="https://lh3.googleusercontent.com/d/1w32FnqDjxgXEPePHmVwRp8mcG_mMZKn6" alt="Kirchenraum" class="church-img" onerror="this.src='https://via.placeholder.com/700x300?text=Kirchenraum+Vorschau'">
 
-        <div class="folder-container">
-            <iframe src="https://drive.google.com/embeddedfolderview?id=1L6QmcJIvXQfKpr6QcahyX_NW3Rzz9uvz#grid" 
-                    style="width:100%; height:450px; border:0;">
-            </iframe>
+        <h3 class="galerie-titel">📚 Materialien der 2. Klasse</h3>
+        
+        <div class="gallery-container" id="galerie-2-klasse">
+            <div id="loading-text-2">Materialien werden geladen...</div>
         </div>
 
         <a href="kirchengegenstaende.html" class="big-quiz-link">👉 Zum interaktiven Kirchen-Quiz</a>
     </div>
 
+    <script>
+        const scriptUrl2 = "https://script.google.com/macros/s/AKfycbz2DB0P6HTUrMvRtLOzu2G0CaHJ5opnqbvN5bi11FonC7uF1ox3kLDME0kB3ekTDpHXSA/exec";
+
+        async function ladeDateienKlasse2() {
+            try {
+                const response = await fetch(scriptUrl2);
+                const dateien = await response.json();
+                const container = document.getElementById('galerie-2-klasse');
+                
+                if (dateien.length === 0) {
+                    container.innerHTML = "<div>Noch keine Materialien hochgeladen.</div>";
+                    return;
+                }
+
+                container.innerHTML = ""; 
+
+                dateien.forEach(file => {
+                    container.innerHTML += `
+                        <a href="${file.url}" target="_blank" class="file-card">
+                            <img src="${file.thumbnail}" alt="Vorschau">
+                            <p title="${file.name}">${file.name}</p>
+                        </a>
+                    `;
+                });
+            } catch (error) {
+                console.error("Fehler:", error);
+                document.getElementById('galerie-2-klasse').innerHTML = "<div>Fehler beim Laden.</div>";
+            }
+        }
+
+        ladeDateienKlasse2();
+    </script>
 </body>
 </html>
