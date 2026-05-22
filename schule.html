@@ -51,9 +51,12 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        .btn1 { background: #3498db; }
-        .btn2 { background: #2ecc71; }
-        .btn3 { background: #e67e22; }
+        /* Farbschema für die Buttons */
+        .btn1 { background: #3498db; } /* Blau: 1. Klasse */
+        .btn2 { background: #2ecc71; } /* Grün: 2. Klasse */
+        .btn3 { background: #e67e22; } /* Orange: Ruheampel */
+        .btn-dashboard { background: #1abc9c; border: 2px solid #16a085; } /* Türkis: Dashboard */
+
         .button:hover { transform: translateY(-2px); opacity: 0.9; }
 
         /* Galerie Styling */
@@ -119,6 +122,9 @@
     <div class="button-group">
         <a href="1.klasse/1.klasse.html" class="button btn1">📚 1. Klasse</a>
         <a href="2.klasse/2.klasse.html" class="button btn2">📘 2. Klasse</a>
+        
+        <a href="dashboard.html" class="button btn-dashboard">📋 Multimedia Dashboard</a>
+        
         <a href="apps/ruheampel.html" class="button btn3">🚦 Ruheampel</a>
     </div>
 
@@ -132,9 +138,12 @@
 
     <br><br>
 
-    <button onclick="logout()" style="padding: 12px 25px; background: #ef4444; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: bold; margin-bottom: 50px;">
-        Abmelden 🚪
-    </button>
+    <div style="margin-top: 20px; padding: 20px; border-top: 1px solid #dcdde1; display: inline-block; width: 80%;">
+        <button onclick="logout()" style="padding: 12px 25px; background: #ef4444; color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: bold; margin-bottom: 20px;">
+            Abmelden 🚪
+        </button>
+        <p style="font-size: 11px; color: #95a5a6;">Unterrichtstools v1.2 | Benjamin Weger</p>
+    </div>
 
     <script>
         // Deine Web-App URL
