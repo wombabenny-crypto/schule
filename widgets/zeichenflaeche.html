@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Widget: Zeichenfläche (Clevertouch Optimiert)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Kompakte Werkzeugleiste direkt im Widget */
+        #widget-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dcdde1;
+            z-index: 100;
+        }
+
+        .tool-btn {
+            background: #ffffff;
+            border: 1px solid #b2bec3;
+            color: #2c3e50;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            touch-action: manipulation;
+        }
+        .tool-btn:hover {
+            background-color: #f1f2f6;
+        }
+        .tool-btn.active {
+            background-color: #1abc9c;
+            color: white;
+            border-color: #16a085;
+        }
+
+        .color-input {
+            width: 35px;
+            height: 30px;
+            border: 1px solid #b2bec3;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .size-label {
+            font-size: 12px;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        /* Zeichenbereich */
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Verhindert jegliche Browser-Gesten wie Scrollen/Zoomen auf dem Canvas */
+            touch-action: none; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="widget-toolbar">
+        <!-- Farbwahl -->
+        <input type="color" id="colorPicker" class="color-input" value="#000000">
+        
+        <!-- Stiftdicke -->
+        <span class="size-label">Dicke:</span>
+        <input type="range" id="lineWidth" min="1" max="30" value="5" style="width: 80px;">
+
+        <!-- Modi -->
+        <button id="penBtn" class="tool-btn active">Stift</button>
+        <button id="eraserBtn" class="tool-btn">Radierer</button>
+        
+        <!-- Aktionen -->
+        <button id="clearBtn" class="tool-btn" style="margin-left: auto; background-color: #fab1a0; border-color: #e17055;">Leeren</button>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="paintCanvas"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+        
+        const colorPicker = document.getElementById('colorPicker');
+        const lineWidthInput = document.getElementById('lineWidth');
+        const penBtn = document.getElementById('penBtn');
+        const eraserBtn = document.getElementById('eraserBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        let isDrawing = false;
+        let isEraser = false;
+        
+        // Speicher für die Striche
+        let strokes = []; 
+        let currentStroke = null;
+
+        // Anpassung an die Box-Größe
+        function resizeCanvas() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            redraw();
+        }
+
+        // Zeichnet das Canvas sauber neu
+        function redraw() {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Für weiche, runde Linien beim schnellen Schreiben
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            strokes.forEach(stroke => {
+                if (stroke.points.length < 1) return;
+                
+                ctx.beginPath();
+                ctx.strokeStyle = stroke.isEraser ? '#ffffff' : stroke.color;
+                ctx.lineWidth = stroke.width;
+                
+                ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+                for (let i = 1; i < stroke.points.length; i++) {
+                    ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+                }
+                ctx.stroke();
+            });
+        }
+
+        // --- HOCHPRÄZISE POINTER-EVENTS (Touch, Stift & Maus) ---
+        
+        function startDrawing(e) {
+            // Verhindert, dass das Dashboard das Fenster bewegt, während wir schreiben
+            e.preventDefault(); 
+            
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            currentStroke = {
+                color: colorPicker.value,
+                width: lineWidthInput.value,
+                isEraser: isEraser,
+                points: [{ x: x, y: y }]
+            };
+            
+            strokes.push(currentStroke);
+            
+            // Sofort einen kleinen Punkt zeichnen, falls man nur tippt
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
+            ctx.lineWidth = currentStroke.width;
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); 
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            currentStroke.points.push({ x: x, y: y });
+            
+            // Direkt auf dem Canvas mitzeichnen für maximale Performance ohne Verzögerung
+            ctx.beginPath();
+            ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
+            ctx.lineWidth = currentStroke.width;
+            
+            const pLen = currentStroke.points.length;
+            ctx.moveTo(currentStroke.points[pLen - 2].x, currentStroke.points[pLen - 2].y);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function stopDrawing(e) {
+            if (isDrawing) {
+                isDrawing = false;
+                saveLocal();
+                redraw(); // Verfeinert das Gesamtbild noch einmal kurz
+            }
+        }
+
+        // Event-Listener an das Canvas binden
+        canvas.addEventListener('pointerdown', startDrawing);
+        canvas.addEventListener('pointermove', draw);
+        canvas.addEventListener('pointerup', stopDrawing);
+        canvas.addEventListener('pointerleave', stopDrawing);
+
+        // --- WERKZEUGE ---
+        penBtn.addEventListener('click', () => {
+            isEraser = false;
+            penBtn.classList.add('active');
+            eraserBtn.classList.remove('active');
+        });
+
+        eraserBtn.addEventListener('click', () => {
+            isEraser = true;
+            eraserBtn.classList.add('active');
+            penBtn.classList.remove('active');
+        });
+
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Möchtest du diese Zeichenfläche leeren?')) {
+                strokes = [];
+                saveLocal();
+                redraw();
+            }
+        });
+
+        colorPicker.addEventListener('change', () => {
+            isEraser = false;
+            penBtn.classList.add('active');
+            eraserBtn.classList.remove('active');
+        });
+
+        // --- LOKALER SPEICHER ---
+        function saveLocal() {
+            localStorage.setItem('widget_strokes_data', JSON.stringify(strokes));
+        }
+
+        function loadLocal() {
+            const saved = localStorage.getItem('widget_strokes_data');
+            if (saved) {
+                try {
+                    strokes = JSON.parse(saved);
+                    redraw();
+                } catch(e) {
+                    strokes = [];
+                }
+            }
+        }
+
+        // Puffer für Größenänderung der Box im Dashboard
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(resizeCanvas, 50);
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            resizeCanvas();
+            loadLocal();
+        });
+    </script>
+</body>
+</html>
