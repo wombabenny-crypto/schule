@@ -3,284 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Widget: Zeichenfläche (Clevertouch Optimiert)</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: sans-serif;
-            background-color: #ffffff;
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #ffffff; margin: 0; }
+        
+        /* Das Dock am unteren Bildschirmrand */
+        #floating-toolbox { 
+            position: fixed; 
+            bottom: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); /* Zentriert die Leiste perfekt */
+            z-index: 9999; 
+            background: white; 
+            padding: 10px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+            border: 1px solid #ddd;
             display: flex;
-            flex-direction: column;
-        }
-
-        /* Kompakte Werkzeugleiste direkt im Widget */
-        #widget-toolbar {
-            display: flex;
+            gap: 10px;
             align-items: center;
-            gap: 8px;
-            padding: 6px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dcdde1;
-            z-index: 100;
         }
 
-        .tool-btn {
-            background: #ffffff;
-            border: 1px solid #b2bec3;
-            color: #2c3e50;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: bold;
-            touch-action: manipulation;
-        }
-        .tool-btn:hover {
-            background-color: #f1f2f6;
-        }
-        .tool-btn.active {
-            background-color: #1abc9c;
-            color: white;
-            border-color: #16a085;
-        }
+        .t-btn { width: 50px; height: 50px; font-size: 24px; border: 1px solid #eee; background: #f9f9f9; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .t-btn:active { background: #e0e0e0; }
+        
+        #pop { display: none; position: absolute; z-index: 1000; background: white; border: 2px solid #9b59b6; border-radius: 8px; padding: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .opt { 
+			padding: 15px; /* Größerer Klickbereich für den Finger */
+			border-bottom: 1px solid #eee; 
+			font-size: 18px; /* Bessere Lesbarkeit */
+		}
+        canvas { display: block; touch-action: none; width: 100vw; height: 100vh; }
+		/* Verhindert das Scrollen und Refresh auf dem ganzen Handy-Screen */
+		body {
+			overscroll-behavior: none;
+			touch-action: none;
+		}
+		#c { touch-action: none; }
+		#text-menu {
+			display: none;             /* Standardmäßig aus */
+			position: fixed;
+			bottom: 80px;             /* Direkt über der Toolbox (die wohl bei ca. 80-90px liegt) */
+			left: 50%;                 /* Startet in der Mitte */
+			transform: translateX(-50%); /* Zieht es exakt um die halbe Breite zurück, damit es perfekt mittig ist */
+			background: rgba(255, 255, 255, 0.95);
+			backdrop-filter: blur(10px);
+			padding: 8px 15px;
+			border-radius: 50px;       /* Schön abgerundet wie ein "Pill"-Design */
+			box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+			border: 1px solid rgba(0,0,0,0.05);
+			display: flex;             /* Ändere dies auf 'flex' per JS bei Aktivierung */
+			gap: 10px;
+			z-index: 10000;
+		}
 
-        .color-input {
-            width: 35px;
-            height: 30px;
-            border: 1px solid #b2bec3;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+		#text-menu button {
+			border: none;
+			background: #f0f0f0;
+			width: 40px;
+			height: 40px;
+			border-radius: 50%; /* Runde Buttons wirken moderner */
+			font-weight: bold;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
 
-        .size-label {
-            font-size: 12px;
-            color: #2c3e50;
-            font-weight: bold;
-            margin-left: 5px;
-        }
-
-        /* Zeichenbereich */
-        #canvas-container {
-            flex: 1;
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff;
-        }
-
-        canvas {
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* Verhindert jegliche Browser-Gesten wie Scrollen/Zoomen auf dem Canvas */
-            touch-action: none; 
-        }
+		#text-menu button:active { background: #3498db; color: white; }
+		
+		#eraser-size {
+			position: absolute;
+			bottom: 80px;      
+			left: 50%;
+			transform: translateX(-50%); /* Zentriert den Regler exakt */
+			z-index: 1000;   /* Damit er über dem Canvas liegt */
+			width: 200px;
+			cursor: pointer;
+		}
+		.pill-menu {
+			position: fixed;
+			bottom: 80px;
+			left: 50%;
+			transform: translateX(-50%);
+			background: rgba(255, 255, 255, 0.95);
+			backdrop-filter: blur(10px);
+			padding: 8px 20px;
+			border-radius: 50px;
+			box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+			border: 1px solid rgba(0,0,0,0.05);
+			z-index: 10000;
+			display: flex;
+			align-items: center;
+			gap: 15px;
+		}
+		
     </style>
 </head>
 <body>
+    <div id="floating-toolbox">
+		<input type="color" onchange="updatePenSettings(this.value, false)" style="width:50px; height:50px; border:none; cursor:pointer;">
+		<div id="pen-settings-bar" class="pill-menu" style="display: none;">
+		<select onchange="updatePenSettings(this.value, true)" style="border: none; background: #f0f0f0; border-radius: 20px; padding: 5px;">
+			<option value="#000000">Normal</option>
+			<option value="#FFD700">Gold</option>
+			<option value="#C0C0C0">Silber</option>
+			<option value="#00FF00">Neon Grün</option>
+		</select>
+		<input type="range" min="1" max="20" value="2" oninput="App.penSettings.size = parseInt(this.value)">
+		
+	</div>
+		
+		
+		<button class="t-btn" id="btn-pen" onclick="setMode('pen')">✏️</button>
+		<button class="t-btn" onclick="handleEraserClick()" id="eraser-btn">🧽</button>
+			<input type="range" id="eraser-size" min="5" max="60" value="20" style="display: none;" oninput="updateEraserSize(this.value)">
+		<button class="t-btn" id="btn-text-lasso" onclick="setMode('text-lasso')">🔤</button>
+		<button class="t-btn" id="btn-text-keyboard" onclick="setMode('text-keyboard')">⌨️</button>
+		<input type="text" id="hidden-input" style="position: absolute; opacity: 0; z-index: -1;">
+		<div id="text-menu" style="display: none;">
+			<select onchange="updateTextSettings(this.value); App.render();" class="t-btn" style="width: 150px; font-size: 14px;">
+				<option value="#000000">Normal</option>
+				<option value="#FFD700">Gold</option>
+				<option value="#FF00FF">Neon Pink</option>
+				<option value="gradient">Regenbogen</option>
+			</select>
+			<input type="range" min="10" max="100" value="30" oninput="App.currentTextSettings.fontSize = parseInt(this.value); App.render();">
+			<button onclick="updateStyle('bold')">B</button>
+			<button onclick="updateStyle('italic')"><em>I</em></button>
+			<button onclick="updateStyle('underline')"><u>U</u></button>
+			<div style="width: 1px; background: #ccc; margin: 0 5px;"></div>
+			<button onclick="updateStyle('align', 'left')">⫷</button>
+			<button onclick="updateStyle('align', 'center')">⫷⫸</button>
+		</div>
+		<button class="t-btn" id="btn-move" onclick="setMode('move')">🖐️</button>
+		<button class="t-btn" id="btn-transform" onclick="setMode('transform')">✥</button>
+		<button class="t-btn" id="bUndo">⤺</button>
+		<button class="t-btn" onclick="clearAll()" style="color:red;">✕</button>
+		<button class="t-btn" onclick="document.getElementById('image-upload').click()">🖼️</button>
 
-    <div id="widget-toolbar">
-        <!-- Farbwahl -->
-        <input type="color" id="colorPicker" class="color-input" value="#000000">
-        
-        <!-- Stiftdicke -->
-        <span class="size-label">Dicke:</span>
-        <input type="range" id="lineWidth" min="1" max="30" value="5" style="width: 80px;">
+		<input type="file" id="image-upload" style="display:none" accept="image/*">
+		<input type="text" id="image-url" placeholder="Bild-URL hier einfügen..." onkeydown="if(event.key==='Enter') loadImageUrl(this.value)">
+	</div>
 
-        <!-- Modi -->
-        <button id="penBtn" class="tool-btn active">Stift</button>
-        <button id="eraserBtn" class="tool-btn">Radierer</button>
-        
-        <!-- Aktionen -->
-        <button id="clearBtn" class="tool-btn" style="margin-left: auto; background-color: #fab1a0; border-color: #e17055;">Leeren</button>
-    </div>
 
-    <div id="canvas-container">
-        <canvas id="paintCanvas"></canvas>
-    </div>
 
-    <script>
-        const canvas = document.getElementById('paintCanvas');
-        const ctx = canvas.getContext('2d');
-        const container = document.getElementById('canvas-container');
-        
-        const colorPicker = document.getElementById('colorPicker');
-        const lineWidthInput = document.getElementById('lineWidth');
-        const penBtn = document.getElementById('penBtn');
-        const eraserBtn = document.getElementById('eraserBtn');
-        const clearBtn = document.getElementById('clearBtn');
 
-        let isDrawing = false;
-        let isEraser = false;
-        
-        // Speicher für die Striche
-        let strokes = []; 
-        let currentStroke = null;
+    <div id="pop"></div>
+    <canvas id="c"></canvas>
 
-        // Anpassung an die Box-Größe
-        function resizeCanvas() {
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-            redraw();
-        }
-
-        // Zeichnet das Canvas sauber neu
-        function redraw() {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Für weiche, runde Linien beim schnellen Schreiben
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            strokes.forEach(stroke => {
-                if (stroke.points.length < 1) return;
-                
-                ctx.beginPath();
-                ctx.strokeStyle = stroke.isEraser ? '#ffffff' : stroke.color;
-                ctx.lineWidth = stroke.width;
-                
-                ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
-                for (let i = 1; i < stroke.points.length; i++) {
-                    ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
-                }
-                ctx.stroke();
-            });
-        }
-
-        // --- HOCHPRÄZISE POINTER-EVENTS (Touch, Stift & Maus) ---
-        
-        function startDrawing(e) {
-            // Verhindert, dass das Dashboard das Fenster bewegt, während wir schreiben
-            e.preventDefault(); 
-            
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            currentStroke = {
-                color: colorPicker.value,
-                width: lineWidthInput.value,
-                isEraser: isEraser,
-                points: [{ x: x, y: y }]
-            };
-            
-            strokes.push(currentStroke);
-            
-            // Sofort einen kleinen Punkt zeichnen, falls man nur tippt
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.beginPath();
-            ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
-            ctx.lineWidth = currentStroke.width;
-            ctx.moveTo(x, y);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            e.preventDefault(); 
-
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            currentStroke.points.push({ x: x, y: y });
-            
-            // Direkt auf dem Canvas mitzeichnen für maximale Performance ohne Verzögerung
-            ctx.beginPath();
-            ctx.strokeStyle = currentStroke.isEraser ? '#ffffff' : currentStroke.color;
-            ctx.lineWidth = currentStroke.width;
-            
-            const pLen = currentStroke.points.length;
-            ctx.moveTo(currentStroke.points[pLen - 2].x, currentStroke.points[pLen - 2].y);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-
-        function stopDrawing(e) {
-            if (isDrawing) {
-                isDrawing = false;
-                saveLocal();
-                redraw(); // Verfeinert das Gesamtbild noch einmal kurz
-            }
-        }
-
-        // Event-Listener an das Canvas binden
-        canvas.addEventListener('pointerdown', startDrawing);
-        canvas.addEventListener('pointermove', draw);
-        canvas.addEventListener('pointerup', stopDrawing);
-        canvas.addEventListener('pointerleave', stopDrawing);
-
-        // --- WERKZEUGE ---
-        penBtn.addEventListener('click', () => {
-            isEraser = false;
-            penBtn.classList.add('active');
-            eraserBtn.classList.remove('active');
-        });
-
-        eraserBtn.addEventListener('click', () => {
-            isEraser = true;
-            eraserBtn.classList.add('active');
-            penBtn.classList.remove('active');
-        });
-
-        clearBtn.addEventListener('click', () => {
-            if (confirm('Möchtest du diese Zeichenfläche leeren?')) {
-                strokes = [];
-                saveLocal();
-                redraw();
-            }
-        });
-
-        colorPicker.addEventListener('change', () => {
-            isEraser = false;
-            penBtn.classList.add('active');
-            eraserBtn.classList.remove('active');
-        });
-
-        // --- LOKALER SPEICHER ---
-        function saveLocal() {
-            localStorage.setItem('widget_strokes_data', JSON.stringify(strokes));
-        }
-
-        function loadLocal() {
-            const saved = localStorage.getItem('widget_strokes_data');
-            if (saved) {
-                try {
-                    strokes = JSON.parse(saved);
-                    redraw();
-                } catch(e) {
-                    strokes = [];
-                }
-            }
-        }
-
-        // Puffer für Größenänderung der Box im Dashboard
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(resizeCanvas, 50);
-        });
-
-        window.addEventListener('DOMContentLoaded', () => {
-            resizeCanvas();
-            loadLocal();
-        });
-    </script>
+    <script src="core.js"></script>
+	<script src="bilder.js"></script>
+	<script src="tool-stift.js"></script>
+	<script src="radierer.js"></script>
+	<script src="transform.js"></script>
+	<script src="tool-lasso.js"></script>
+	<script src="tool-undo.js"></script>
+	
 </body>
 </html>
